@@ -1157,6 +1157,7 @@ textarea {
     position: relative;
 
     min-height: 280px;
+    width: 100%;
 
     display: grid;
     place-items: center;
@@ -1173,6 +1174,17 @@ textarea {
         );
 
     border: 1px solid var(--border);
+}
+
+.map-container.leaflet-container {
+    display: block;
+    min-height: 300px;
+    background: #dfeee8;
+}
+
+.map-container .leaflet-control-zoom {
+    border: none;
+    box-shadow: var(--shadow-sm);
 }
 
 .map-container::before,

@@ -13,10 +13,20 @@ const appState = {
     rating: 0
 };
 
+const mapState = {
+    rideMap: null,
+    liveMap: null,
+    pickupMarker: null,
+    destinationMarker: null,
+    routeLine: null
+};
+
+const GHANA_CENTER = [7.9465, -1.0232];
+
 // Mock Database for Demo
 const mockDatabase = {
     users: [
-        { id: 1, email: 'rider@test.com', password: '123456', name: 'John Doe', phone: '0559999999', type: 'rider', rating: 4.8, totalRides: 12, totalSpent: 250 },
+        { id: 1, email: 'aloysioudennis09@gmail.com', password: '123456', name: 'Aloysious Dennis', phone: '0535915543', type: 'rider', rating: 4.8, totalRides: 12, totalSpent: 250 },
         { id: 2, email: 'driver@test.com', password: '123456', name: 'John Mensah', phone: '0551234567', type: 'driver', rating: 4.9, completedRides: 250, totalEarnings: 5000 }
     ],
     drivers: [
@@ -46,6 +56,132 @@ function showPage(pageId) {
     
     // Scroll to top
     window.scrollTo(0, 0);
+    resizeMaps();
+}
+
+function resizeMaps() {
+    if (mapState.rideMap) {
+        setTimeout(() => mapState.rideMap.invalidateSize(), 200);
+    }
+
+    if (mapState.liveMap) {
+        setTimeout(() => mapState.liveMap.invalidateSize(), 200);
+    }
+}
+
+function initializeMap(containerId, focusPoint = GHANA_CENTER) {
+    const mapContainer = document.getElementById(containerId);
+
+    if (!mapContainer || !window.L) {
+        return null;
+    }
+
+    if (mapContainer._leaflet_id) {
+        const existingMap = mapContainer._leaflet_map || null;
+        if (existingMap) {
+            existingMap.invalidateSize();
+            return existingMap;
+        }
+    }
+
+    const map = L.map(containerId, {
+        zoomControl: true,
+        scrollWheelZoom: true
+    }).setView(focusPoint, 7);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    mapContainer._leaflet_map = map;
+    return map;
+}
+
+async function geocodeLocation(query) {
+    const cleanedQuery = String(query || '').trim();
+
+    if (!cleanedQuery) {
+        return null;
+    }
+
+    const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=${encodeURIComponent(cleanedQuery + ', Ghana')}`;
+
+    const response = await fetch(url, {
+        headers: {
+            'Accept-Language': 'en'
+        }
+    });
+
+    if (!response.ok) {
+        throw new Error('Location lookup failed');
+    }
+
+    const data = await response.json();
+
+    if (!data || data.length === 0) {
+        return null;
+    }
+
+    return {
+        lat: parseFloat(data[0].lat),
+        lon: parseFloat(data[0].lon),
+        displayName: data[0].display_name
+    };
+}
+
+function drawRouteMap(pickupCoords, destinationCoords) {
+    if (!mapState.rideMap) {
+        mapState.rideMap = initializeMap('mapContainer', GHANA_CENTER);
+    }
+
+    if (!mapState.rideMap) {
+        return;
+    }
+
+    const pickupLatLng = L.latLng(pickupCoords.lat, pickupCoords.lon);
+    const destinationLatLng = L.latLng(destinationCoords.lat, destinationCoords.lon);
+
+    if (mapState.pickupMarker) {
+        mapState.rideMap.removeLayer(mapState.pickupMarker);
+    }
+
+    if (mapState.destinationMarker) {
+        mapState.rideMap.removeLayer(mapState.destinationMarker);
+    }
+
+    if (mapState.routeLine) {
+        mapState.rideMap.removeLayer(mapState.routeLine);
+    }
+
+    mapState.pickupMarker = L.marker(pickupLatLng, {
+        title: 'Pickup'
+    }).addTo(mapState.rideMap).bindPopup('Pickup location');
+
+    mapState.destinationMarker = L.marker(destinationLatLng, {
+        title: 'Destination'
+    }).addTo(mapState.rideMap).bindPopup('Destination');
+
+    mapState.routeLine = L.polyline([pickupLatLng, destinationLatLng], {
+        color: '#36b37e',
+        weight: 5,
+        opacity: 0.8
+    }).addTo(mapState.rideMap);
+
+    const bounds = L.latLngBounds([pickupLatLng, destinationLatLng]);
+    mapState.rideMap.fitBounds(bounds, { padding: [30, 30] });
+}
+
+async function updateRideMapFromAddresses(pickupAddress, destinationAddress) {
+    const pickupResult = await geocodeLocation(pickupAddress);
+    const destinationResult = await geocodeLocation(destinationAddress);
+
+    if (!pickupResult || !destinationResult) {
+        showNotification('Could not find both locations on the map. Try more specific addresses.', 'error');
+        return false;
+    }
+
+    drawRouteMap(pickupResult, destinationResult);
+    return true;
 }
 
 // ============================================
@@ -219,7 +355,7 @@ function updateNavbar() {
 // RIDE BOOKING
 // ============================================
 
-document.getElementById('rideForm').addEventListener('submit', (e) => {
+document.getElementById('rideForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     
     if (!appState.isLoggedIn) {
@@ -242,6 +378,17 @@ document.getElementById('rideForm').addEventListener('submit', (e) => {
         status: 'searching',
         createdAt: new Date()
     };
+
+    try {
+        const routeReady = await updateRideMapFromAddresses(pickupLocation, dropoffLocation);
+        if (!routeReady) {
+            return;
+        }
+    } catch (error) {
+        console.error('Map geocoding failed:', error);
+        showNotification('Map lookup failed. Please enter a more specific address.', 'error');
+        return;
+    }
     
     // Populate available drivers
     populateAvailableDrivers();
@@ -589,6 +736,8 @@ function showNotification(message, type = 'success') {
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Louise Transport App Loaded!');
+    initializeMap('mapContainer', GHANA_CENTER);
+    initializeMap('liveMapContainer', GHANA_CENTER);
     showPage('homePage');
     updateNavbar();
     
