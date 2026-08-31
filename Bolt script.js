@@ -705,12 +705,26 @@ function loadProfileData() {
     
     const user = appState.user;
     
-    // Update profile info
     document.getElementById('profileName').textContent = user.name;
     document.getElementById('profileEmail').textContent = user.email;
     document.getElementById('profilePhone').textContent = user.phone;
+
+    document.getElementById('displayName').textContent = user.name || 'Not provided';
+    document.getElementById('displayEmail').textContent = user.email || 'Not provided';
+    document.getElementById('displayPhone').textContent = user.phone || 'Not provided';
+    document.getElementById('displayDOB').textContent = user.dob ? new Date(user.dob).toLocaleDateString('en-US', {
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric'
+    }) : 'Not provided';
+    document.getElementById('displayGender').textContent = user.gender ? user.gender.charAt(0).toUpperCase() + user.gender.slice(1) : 'Not provided';
+    document.getElementById('displayMemberSince').textContent = user.memberSince || 'August 2024';
+
+    const securityLoginEmail = document.getElementById('securityLoginEmail');
+    const securityPhone = document.getElementById('securityPhone');
+    if (securityLoginEmail) securityLoginEmail.textContent = user.email || 'Not provided';
+    if (securityPhone) securityPhone.textContent = user.phone || 'Not provided';
     
-    // Update stats based on user type
     if (user.type === 'rider') {
         document.getElementById('totalRides').textContent = user.totalRides;
         document.getElementById('myRating').textContent = `${user.rating} ⭐`;
@@ -721,8 +735,9 @@ function loadProfileData() {
         document.getElementById('totalSpent').textContent = `GHS ${user.totalEarnings.toFixed(2)}`;
     }
     
-    // Load ride history
     populateRideHistory();
+    renderSavedPlaces();
+    updateTwoFactorStatus();
 }
 
 function populateRideHistory() {
@@ -1030,11 +1045,13 @@ if (editPersonalBtn) {
     editPersonalBtn.addEventListener('click', () => {
         const displayName = document.getElementById('displayName').textContent.trim();
         const displayPhone = document.getElementById('displayPhone').textContent.trim();
+        const displayDOB = document.getElementById('displayDOB').textContent.trim();
+        const displayGender = document.getElementById('displayGender').textContent.trim();
 
-        document.getElementById('editName').value = displayName;
-        document.getElementById('editPhone').value = displayPhone;
-        document.getElementById('editDOB').value = '';
-        document.getElementById('editGender').value = '';
+        document.getElementById('editName').value = displayName === 'Not provided' ? '' : displayName;
+        document.getElementById('editPhone').value = displayPhone === 'Not provided' ? '' : displayPhone;
+        document.getElementById('editDOB').value = appState.user?.dob || '';
+        document.getElementById('editGender').value = (appState.user?.gender || '').toLowerCase();
         personalEditForm.classList.remove('hidden');
     });
 }
@@ -1068,6 +1085,15 @@ if (personalEditForm) {
             year: 'numeric'
         });
         document.getElementById('displayGender').textContent = gender.charAt(0).toUpperCase() + gender.slice(1);
+
+        if (appState.user) {
+            appState.user.name = name;
+            appState.user.phone = phone;
+            appState.user.dob = dob;
+            appState.user.gender = gender;
+            document.getElementById('profileName').textContent = name;
+            document.getElementById('profilePhone').textContent = phone;
+        }
 
         personalEditForm.reset();
         personalEditForm.classList.add('hidden');
@@ -1111,6 +1137,15 @@ function showNotification(message, type = 'success') {
 // INITIALIZATION
 // ============================================
 
+const themeModeToggle = document.getElementById('themeModeToggle');
+
+if (themeModeToggle) {
+    themeModeToggle.addEventListener('change', () => {
+        document.body.classList.toggle('dark-theme', themeModeToggle.checked);
+        showNotification(themeModeToggle.checked ? 'Night mode enabled' : 'Day mode enabled', 'info');
+    });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Louise Transport App Loaded!');
     initializeMap('mapContainer', GHANA_CENTER);
@@ -1118,6 +1153,7 @@ document.addEventListener('DOMContentLoaded', () => {
     showPage('homePage');
     updateNavbar();
     updateTwoFactorStatus();
+    renderSavedPlaces();
     
     // For demo purposes, log available test accounts
     console.log('Demo Accounts:');

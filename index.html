@@ -1341,7 +1341,7 @@
 
                     <!-- PERSONAL INFO TAB -->
                     <div class="profile-tab-content active" id="personal-tab">
-                        <div class="section-card">
+                        <div class="section-card personal-card">
                             <div class="section-header">
                                 <h3>Personal Information</h3>
                                 <button class="btn btn-small btn-secondary" id="editPersonalBtn">
@@ -1349,63 +1349,97 @@
                                 </button>
                             </div>
 
-                            <div class="info-grid">
-                                <div class="info-item">
-                                    <label>Full Name</label>
-                                    <p id="displayName">John Doe</p>
+                            <div class="personal-summary-wrap">
+                                <div class="info-grid">
+                                    <div class="info-item">
+                                        <label>Full Name</label>
+                                        <p id="displayName">John Doe</p>
+                                    </div>
+                                    <div class="info-item">
+                                        <label>Email Address</label>
+                                        <p id="displayEmail">john@example.com</p>
+                                    </div>
+                                    <div class="info-item">
+                                        <label>Phone Number</label>
+                                        <p id="displayPhone">0559999999</p>
+                                    </div>
+                                    <div class="info-item">
+                                        <label>Date of Birth</label>
+                                        <p id="displayDOB">January 15, 1990</p>
+                                    </div>
+                                    <div class="info-item">
+                                        <label>Gender</label>
+                                        <p id="displayGender">Male</p>
+                                    </div>
+                                    <div class="info-item">
+                                        <label>Member Since</label>
+                                        <p id="displayMemberSince">August 2024</p>
+                                    </div>
                                 </div>
-                                <div class="info-item">
-                                    <label>Email Address</label>
-                                    <p id="displayEmail">john@example.com</p>
-                                </div>
-                                <div class="info-item">
-                                    <label>Phone Number</label>
-                                    <p id="displayPhone">0559999999</p>
-                                </div>
-                                <div class="info-item">
-                                    <label>Date of Birth</label>
-                                    <p id="displayDOB">January 15, 1990</p>
-                                </div>
-                                <div class="info-item">
-                                    <label>Gender</label>
-                                    <p id="displayGender">Male</p>
-                                </div>
-                                <div class="info-item">
-                                    <label>Member Since</label>
-                                    <p id="displayMemberSince">August 2024</p>
-                                </div>
-                            </div>
 
-                            <!-- Personal Info Edit Form (Hidden) -->
-                            <form id="personalEditForm" class="hidden">
-                                <div class="form-row">
-                                    <div class="form-group">
-                                        <label for="editName">Full Name</label>
-                                        <input type="text" id="editName" placeholder="Enter full name" required>
+                                <form id="personalEditForm" class="profile-form">
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label for="editName">Full Name</label>
+                                            <input type="text" id="editName" placeholder="Enter full name" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="editPhone">Phone Number</label>
+                                            <input type="tel" id="editPhone" placeholder="Enter phone number" required>
+                                        </div>
                                     </div>
-                                    <div class="form-group">
-                                        <label for="editPhone">Phone Number</label>
-                                        <input type="tel" id="editPhone" placeholder="Enter phone number" required>
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label for="editDOB">Date of Birth</label>
+                                            <input type="date" id="editDOB" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="editGender">Gender</label>
+                                            <select id="editGender" required>
+                                                <option value="">Select Gender</option>
+                                                <option value="male">Male</option>
+                                                <option value="female">Female</option>
+                                                <option value="other">Other</option>
+                                            </select>
+                                        </div>
                                     </div>
+                                    <div class="form-actions">
+                                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                                        <button type="button" class="btn btn-secondary" id="cancelPersonalBtn">Cancel</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                        <div class="section-card saved-section">
+                            <div class="section-header">
+                                <h3>Saved Addresses</h3>
+                                <button class="btn btn-small btn-primary" id="addAddressBtn">
+                                    <i class="fas fa-plus"></i> Add Address
+                                </button>
+                            </div>
+                            <div id="addressesList" class="addresses-list"></div>
+                            <form id="addAddressForm" class="hidden address-form">
+                                <div class="form-group">
+                                    <label for="addressLabel">Address Label</label>
+                                    <select id="addressLabel" required>
+                                        <option value="">Select Type</option>
+                                        <option value="home">Home</option>
+                                        <option value="work">Work</option>
+                                        <option value="other">Other Place</option>
+                                    </select>
                                 </div>
-                                <div class="form-row">
-                                    <div class="form-group">
-                                        <label for="editDOB">Date of Birth</label>
-                                        <input type="date" id="editDOB" required>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="editGender">Gender</label>
-                                        <select id="editGender" required>
-                                            <option value="">Select Gender</option>
-                                            <option value="male">Male</option>
-                                            <option value="female">Female</option>
-                                            <option value="other">Other</option>
-                                        </select>
-                                    </div>
+                                <div class="form-group">
+                                    <label for="addressName">Place Name (Optional)</label>
+                                    <input type="text" id="addressName" placeholder="e.g., Mom's House">
+                                </div>
+                                <div class="form-group">
+                                    <label for="addressText">Full Address</label>
+                                    <textarea id="addressText" placeholder="Enter complete address" rows="3" required></textarea>
                                 </div>
                                 <div class="form-actions">
-                                    <button type="submit" class="btn btn-primary">Save Changes</button>
-                                    <button type="button" class="btn btn-secondary" id="cancelPersonalBtn">Cancel</button>
+                                    <button type="submit" class="btn btn-primary">Save Address</button>
+                                    <button type="button" class="btn btn-secondary" id="cancelAddressBtn">Cancel</button>
                                 </div>
                             </form>
                         </div>
@@ -1611,10 +1645,32 @@
 
                             <div class="security-item">
                                 <div class="security-header">
+                                    <i class="fas fa-envelope"></i>
+                                    <div>
+                                        <h4>Login Email</h4>
+                                        <p id="securityLoginEmail">john@example.com</p>
+                                    </div>
+                                </div>
+                                <button class="btn btn-small btn-secondary" id="changePasswordBtn">Update Email</button>
+                            </div>
+
+                            <div class="security-item">
+                                <div class="security-header">
+                                    <i class="fas fa-phone"></i>
+                                    <div>
+                                        <h4>Registered Phone</h4>
+                                        <p id="securityPhone">0559999999</p>
+                                    </div>
+                                </div>
+                                <button class="btn btn-small btn-secondary">Edit Phone</button>
+                            </div>
+
+                            <div class="security-item">
+                                <div class="security-header">
                                     <i class="fas fa-lock"></i>
                                     <div>
                                         <h4>Password</h4>
-                                        <p>Change your password regularly to keep your account secure</p>
+                                        <p>Use the password created when you registered or logged in.</p>
                                     </div>
                                 </div>
                                 <button class="btn btn-small btn-secondary" id="changePasswordBtn">Change Password</button>
@@ -1700,15 +1756,15 @@
 
                             <div class="privacy-item">
                                 <div class="privacy-header">
-                                    <i class="fas fa-eye"></i>
+                                    <i class="fas fa-user-lock"></i>
                                     <div>
                                         <h4>Profile Visibility</h4>
-                                        <p>Control who can see your profile</p>
+                                        <p>Only you can see your private profile details</p>
                                     </div>
                                 </div>
                                 <select class="select-sm">
-                                    <option>Public</option>
-                                    <option>Friends Only</option>
+                                    <option>Only Me</option>
+                                    <option>My Contacts</option>
                                     <option>Private</option>
                                 </select>
                             </div>
@@ -1717,8 +1773,8 @@
                                 <div class="privacy-header">
                                     <i class="fas fa-user-secret"></i>
                                     <div>
-                                        <h4>Show My Rating</h4>
-                                        <p>Allow drivers to see your passenger rating</p>
+                                        <h4>Private Rating</h4>
+                                        <p>Keep your rating visible only to your account</p>
                                     </div>
                                 </div>
                                 <label class="toggle-switch">
@@ -1729,10 +1785,10 @@
 
                             <div class="privacy-item">
                                 <div class="privacy-header">
-                                    <i class="fas fa-envelope"></i>
+                                    <i class="fas fa-bell-slash"></i>
                                     <div>
-                                        <h4>Email Notifications</h4>
-                                        <p>Receive updates and offers via email</p>
+                                        <h4>Personal Updates</h4>
+                                        <p>Limit push and email alerts to just your account</p>
                                     </div>
                                 </div>
                                 <label class="toggle-switch">
@@ -1743,10 +1799,10 @@
 
                             <div class="privacy-item">
                                 <div class="privacy-header">
-                                    <i class="fas fa-sms"></i>
+                                    <i class="fas fa-shield-heart"></i>
                                     <div>
-                                        <h4>SMS Notifications</h4>
-                                        <p>Receive important updates via SMS</p>
+                                        <h4>Data Protection</h4>
+                                        <p>Protect your personal details and trip history</p>
                                     </div>
                                 </div>
                                 <label class="toggle-switch">
@@ -1793,14 +1849,14 @@
 
                             <div class="preference-item">
                                 <div class="preference-header">
-                                    <i class="fas fa-moon"></i>
+                                    <i class="fas fa-sun"></i>
                                     <div>
-                                        <h4>Dark Mode</h4>
-                                        <p>Enable dark theme for the app</p>
+                                        <h4>Day / Night Mode</h4>
+                                        <p>Switch between light and dark theme</p>
                                     </div>
                                 </div>
                                 <label class="toggle-switch">
-                                    <input type="checkbox">
+                                    <input type="checkbox" id="themeModeToggle">
                                     <span class="toggle-slider"></span>
                                 </label>
                             </div>
