@@ -85,9 +85,8 @@
             <!-- Hero -->
             <div class="hero">
 
-            <div class="Louise Transport Ride">
-                <img src="ChatGPT Image Aug 28, 2026, 03_46_45 AM.png" width="100%" height="100%" alt="Louise Transport Ride" />
-
+            <div class="hero-image">
+                <img src="ChatGPT Image Aug 28, 2026, 03_46_45 AM.png" alt="Louise Transport Ride" />
             </div>
 
                 <div class="hero-overlay"></div>
@@ -170,6 +169,7 @@
                                 id="quickPickup"
                                 placeholder="Pickup location"
                             >
+                            <div class="location-feedback"></div>
                         </div>
 
                         <div class="location-line"></div>
@@ -182,6 +182,7 @@
                                 id="quickDestination"
                                 placeholder="Where to?"
                             >
+                            <div class="location-feedback"></div>
                         </div>
 
                         <button class="btn btn-primary quick-btn" id="quickBookBtn">
@@ -216,62 +217,41 @@
                         <div class="feature-icon">
                             <i class="fas fa-location-crosshairs"></i>
                         </div>
-
-                    <article>
-
-                    <div class="feature-image">
-                        <img src="androidLiveTrack.webp" width="60%" height="80%" alt="Live Tracking">
-
+                        <img src="androidLiveTrack.webp" alt="Live Tracking">
                         <h3>Live Tracking</h3>
-
                         <p>
                             Know where your driver is and track your journey in real time.
                         </p>
-                    </article>
-
                     </div>
 
                     <div class="feature-card">
                         <div class="feature-icon">
                             <i class="fas fa-money-bill-transfer"></i>
                         </div>
-                <article>
-                    <img src="orange-payment-label-vector-53989529.avif" width="60%" height="80%" alt="Flexible Payments">
-
-
+                        <img src="orange-payment-label-vector-53989529.avif" alt="Flexible Payments">
                         <h3>Flexible Payments</h3>
-
                         <p>
                             Pay conveniently with cash, Mobile Money or your bank card.
                         </p>
-                    </article>
                     </div>
-
-                    <article>
-
 
                     <div class="feature-card">
                         <div class="feature-icon">
                             <i class="fas fa-user-check"></i>
                         </div>
-                        <img src="ChatGPT Image Aug 28, 2026, 10_07_20 AM.png" width="60%" height="80%" alt="Verified Drivers">
-
+                        <img src="ChatGPT Image Aug 28, 2026, 10_07_20 AM.png" alt="Verified Drivers">
                         <h3>Verified Drivers</h3>
-
                         <p>
                             Ride with trusted and highly-rated drivers.
                         </p>
-                        </article>
                     </div>
-
 
                     <div class="feature-card">
                         <div class="feature-icon">
                             <i class="fas fa-headset"></i>
                         </div>
-
+                        <img src="customer-service-technical-support_24877-52930.avif" alt="Customer Support">
                         <h3>Customer Support</h3>
-
                         <p>
                             Get assistance whenever you need help with your ride.
                         </p>
@@ -307,7 +287,7 @@
                             <p>Affordable everyday rides.</p>
 
                             <div class="ride-price">
-                                From <strong>GH₵5</strong>
+                                From <strong>GH₵25</strong>
                             </div>
                         </div>
                     </div>
@@ -325,7 +305,7 @@
                             <p>Extra comfort for your journey.</p>
 
                             <div class="ride-price">
-                                From <strong>GH₵8</strong>
+                                From <strong>GH₵40</strong>
                             </div>
                         </div>
                     </div>
@@ -341,7 +321,7 @@
                             <p>Premium vehicles and extra comfort.</p>
 
                             <div class="ride-price">
-                                From <strong>GH₵12</strong>
+                                From <strong>GH₵60</strong>
                             </div>
                         </div>
                     </div>
@@ -384,6 +364,16 @@
 
                     <div class="city-card">
                         <i class="fas fa-city"></i>
+                        <span>Cape Coast </span>
+                    </div>
+
+                    <div class="city-card">
+                        <i class="fas fa-city"></i>
+                        <span>Kumasi</span>
+                    </div>
+
+                    <div class="city-card">
+                        <i class="fas fa-city"></i>
                         <span>Takoradi</span>
                     </div>
 
@@ -395,6 +385,10 @@
                     <div class="city-card">
                         <i class="fas fa-city"></i>
                         <span>Sekondi</span>
+                    </div>
+                <div class="city-card">
+                        <i class="fas fa-city"></i>
+                        <span>Senya</span>
                     </div>
 
                 </div>
@@ -704,6 +698,7 @@
                                     required
                                     placeholder="e.g. Kotoka Airport, Accra"
                                 >
+                                <div class="location-feedback"></div>
                             </div>
 
                         </div>
@@ -724,6 +719,7 @@
                                     required
                                     placeholder="Enter your destination"
                                 >
+                                <div class="location-feedback"></div>
                             </div>
 
                         </div>
@@ -1264,123 +1260,571 @@
 
             <div class="profile-container">
 
-                <div class="profile-card">
+                <!-- Profile Header -->
+                <div class="profile-header">
 
-                    <!-- Profile Header -->
-                    <div class="profile-header">
+                    <div class="profile-avatar-large">
+                        <i class="fas fa-user"></i>
+                    </div>
 
-                        <div class="profile-avatar">
-                            <i class="fas fa-user"></i>
+                    <div class="profile-header-info">
+                        <h2 id="profileName">John Doe</h2>
+                        <p id="profileEmail">john@example.com</p>
+                        <div class="profile-badges">
+                            <span class="badge badge-primary">
+                                <i class="fas fa-star"></i> 4.8
+                            </span>
+                            <span class="badge badge-success">
+                                <i class="fas fa-car"></i> 12 Rides
+                            </span>
+                        </div>
+                    </div>
+
+                </div>
+
+
+                <!-- Profile Tabs Navigation -->
+                <div class="profile-tabs-nav">
+                    <button class="profile-tab-btn active" data-tab="personal">
+                        <i class="fas fa-user-circle"></i>
+                        Personal Info
+                    </button>
+                    <button class="profile-tab-btn" data-tab="addresses">
+                        <i class="fas fa-map-marker-alt"></i>
+                        Addresses
+                    </button>
+                    <button class="profile-tab-btn" data-tab="safety">
+                        <i class="fas fa-shield-alt"></i>
+                        Safety
+                    </button>
+                    <button class="profile-tab-btn" data-tab="security">
+                        <i class="fas fa-lock"></i>
+                        Security
+                    </button>
+                    <button class="profile-tab-btn" data-tab="privacy">
+                        <i class="fas fa-eye-slash"></i>
+                        Privacy
+                    </button>
+                    <button class="profile-tab-btn" data-tab="preferences">
+                        <i class="fas fa-cog"></i>
+                        Preferences
+                    </button>
+                </div>
+
+
+                <!-- Profile Content -->
+                <div class="profile-content">
+
+                    <!-- PERSONAL INFO TAB -->
+                    <div class="profile-tab-content active" id="personal-tab">
+                        <div class="section-card">
+                            <div class="section-header">
+                                <h3>Personal Information</h3>
+                                <button class="btn btn-small btn-secondary" id="editPersonalBtn">
+                                    <i class="fas fa-edit"></i> Edit
+                                </button>
+                            </div>
+
+                            <div class="info-grid">
+                                <div class="info-item">
+                                    <label>Full Name</label>
+                                    <p id="displayName">John Doe</p>
+                                </div>
+                                <div class="info-item">
+                                    <label>Email Address</label>
+                                    <p id="displayEmail">john@example.com</p>
+                                </div>
+                                <div class="info-item">
+                                    <label>Phone Number</label>
+                                    <p id="displayPhone">0559999999</p>
+                                </div>
+                                <div class="info-item">
+                                    <label>Date of Birth</label>
+                                    <p id="displayDOB">January 15, 1990</p>
+                                </div>
+                                <div class="info-item">
+                                    <label>Gender</label>
+                                    <p id="displayGender">Male</p>
+                                </div>
+                                <div class="info-item">
+                                    <label>Member Since</label>
+                                    <p id="displayMemberSince">August 2024</p>
+                                </div>
+                            </div>
+
+                            <!-- Personal Info Edit Form (Hidden) -->
+                            <form id="personalEditForm" class="hidden">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="editName">Full Name</label>
+                                        <input type="text" id="editName" placeholder="Enter full name" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="editPhone">Phone Number</label>
+                                        <input type="tel" id="editPhone" placeholder="Enter phone number" required>
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="editDOB">Date of Birth</label>
+                                        <input type="date" id="editDOB" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="editGender">Gender</label>
+                                        <select id="editGender" required>
+                                            <option value="">Select Gender</option>
+                                            <option value="male">Male</option>
+                                            <option value="female">Female</option>
+                                            <option value="other">Other</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-actions">
+                                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                                    <button type="button" class="btn btn-secondary" id="cancelPersonalBtn">Cancel</button>
+                                </div>
+                            </form>
                         </div>
 
-                        <div class="profile-info">
-
-                            <h2 id="profileName">
-                                John Doe
-                            </h2>
-
-                            <p id="profileEmail">
-                                john@example.com
-                            </p>
-
-                            <p id="profilePhone">
-                                0559999999
-                            </p>
-
+                        <!-- Stats Section -->
+                        <div class="section-card">
+                            <h3>Your Statistics</h3>
+                            <div class="stats-grid">
+                                <div class="stat-card">
+                                    <div class="stat-icon">
+                                        <i class="fas fa-car"></i>
+                                    </div>
+                                    <div class="stat-details">
+                                        <p class="stat-label">Total Rides</p>
+                                        <p class="stat-value" id="totalRidesStats">12</p>
+                                    </div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-icon">
+                                        <i class="fas fa-star"></i>
+                                    </div>
+                                    <div class="stat-details">
+                                        <p class="stat-label">Rating</p>
+                                        <p class="stat-value" id="ratingStats">4.8 ⭐</p>
+                                    </div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-icon">
+                                        <i class="fas fa-wallet"></i>
+                                    </div>
+                                    <div class="stat-details">
+                                        <p class="stat-label">Total Spent</p>
+                                        <p class="stat-value" id="spentStats">GH₵250.00</p>
+                                    </div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-icon">
+                                        <i class="fas fa-clock"></i>
+                                    </div>
+                                    <div class="stat-details">
+                                        <p class="stat-label">Avg. Distance</p>
+                                        <p class="stat-value">15.3 km</p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-
                     </div>
 
 
-                    <!-- Profile Statistics -->
-                    <div class="profile-stats">
-
-                        <div class="stat-box">
-                            <div class="stat-icon">
-                                <i class="fas fa-car"></i>
+                    <!-- ADDRESSES TAB -->
+                    <div class="profile-tab-content" id="addresses-tab">
+                        <div class="section-card">
+                            <div class="section-header">
+                                <h3>Saved Addresses</h3>
+                                <button class="btn btn-small btn-primary" id="addAddressBtn">
+                                    <i class="fas fa-plus"></i> Add Address
+                                </button>
                             </div>
 
-                            <h4>Total Rides</h4>
+                            <div id="addressesList" class="addresses-list">
+                                <!-- Home Address -->
+                                <div class="address-item">
+                                    <div class="address-type">
+                                        <i class="fas fa-home"></i>
+                                        <span>Home</span>
+                                    </div>
+                                    <p class="address-text">123 Main Street, Osu, Accra</p>
+                                    <div class="address-actions">
+                                        <button class="btn-icon" title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn-icon btn-danger" title="Delete">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
 
-                            <p id="totalRides">12</p>
-                        </div>
+                                <!-- Work Address -->
+                                <div class="address-item">
+                                    <div class="address-type">
+                                        <i class="fas fa-briefcase"></i>
+                                        <span>Work</span>
+                                    </div>
+                                    <p class="address-text">456 Business Plaza, Legon, Accra</p>
+                                    <div class="address-actions">
+                                        <button class="btn-icon" title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn-icon btn-danger" title="Delete">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
 
-
-                        <div class="stat-box">
-                            <div class="stat-icon">
-                                <i class="fas fa-star"></i>
+                                <!-- Other Places -->
+                                <div class="address-item">
+                                    <div class="address-type">
+                                        <i class="fas fa-map-pin"></i>
+                                        <span>Gym</span>
+                                    </div>
+                                    <p class="address-text">789 Fitness Center, Madina, Accra</p>
+                                    <div class="address-actions">
+                                        <button class="btn-icon" title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn-icon btn-danger" title="Delete">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
 
-                            <h4>My Rating</h4>
-
-                            <p id="myRating">4.8 ⭐</p>
+                            <!-- Add Address Form (Hidden) -->
+                            <form id="addAddressForm" class="hidden address-form">
+                                <div class="form-group">
+                                    <label for="addressLabel">Address Label</label>
+                                    <select id="addressLabel" required>
+                                        <option value="">Select Type</option>
+                                        <option value="home">Home</option>
+                                        <option value="work">Work</option>
+                                        <option value="other">Other Place</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="addressName">Place Name (Optional)</label>
+                                    <input type="text" id="addressName" placeholder="e.g., Mom's House">
+                                </div>
+                                <div class="form-group">
+                                    <label for="addressText">Full Address</label>
+                                    <textarea id="addressText" placeholder="Enter complete address" rows="3" required></textarea>
+                                </div>
+                                <div class="form-actions">
+                                    <button type="submit" class="btn btn-primary">Save Address</button>
+                                    <button type="button" class="btn btn-secondary" id="cancelAddressBtn">Cancel</button>
+                                </div>
+                            </form>
                         </div>
-
-
-                        <div class="stat-box">
-                            <div class="stat-icon">
-                                <i class="fas fa-wallet"></i>
-                            </div>
-
-                            <h4>Total Spent</h4>
-
-                            <p id="totalSpent">GH₵250.00</p>
-                        </div>
-
                     </div>
 
 
-                    <!-- Ride History -->
-                    <div class="ride-history">
-
-                        <div class="card-heading">
-
-                            <div>
-                                <h3>Recent Rides</h3>
-                                <p>Your latest trips</p>
+                    <!-- SAFETY TAB -->
+                    <div class="profile-tab-content" id="safety-tab">
+                        <div class="section-card">
+                            <h3>Safety Features</h3>
+                            
+                            <div class="safety-feature">
+                                <div class="feature-header">
+                                    <i class="fas fa-share-alt"></i>
+                                    <div>
+                                        <h4>Share My Trip</h4>
+                                        <p>Allow trusted contacts to see your live location during rides</p>
+                                    </div>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
                             </div>
 
-                        </div>
+                            <div class="safety-feature">
+                                <div class="feature-header">
+                                    <i class="fas fa-user-friends"></i>
+                                    <div>
+                                        <h4>Emergency Contacts</h4>
+                                        <p>Add people to contact in case of emergency</p>
+                                    </div>
+                                </div>
+                                <button class="btn btn-small btn-secondary">Manage Contacts</button>
+                            </div>
 
-                        <div
-                            id="rideHistoryList"
-                            class="history-list"
-                        >
-                            <!-- Ride history populated by JavaScript -->
-                        </div>
+                            <div class="safety-feature">
+                                <div class="feature-header">
+                                    <i class="fas fa-video"></i>
+                                    <div>
+                                        <h4>Driver Verification</h4>
+                                        <p>Verify driver identity before riding</p>
+                                    </div>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
 
+                            <div class="safety-feature">
+                                <div class="feature-header">
+                                    <i class="fas fa-shield-alt"></i>
+                                    <div>
+                                        <h4>Safety Report</h4>
+                                        <p>Report safety concerns from your rides</p>
+                                    </div>
+                                </div>
+                                <button class="btn btn-small btn-secondary">View History</button>
+                            </div>
+                        </div>
                     </div>
 
 
-                    <!-- Profile Actions -->
-                    <div class="profile-actions">
+                    <!-- LOGIN & SECURITY TAB -->
+                    <div class="profile-tab-content" id="security-tab">
+                        <div class="section-card">
+                            <h3>Login & Security</h3>
 
-                        <button
-                            class="btn btn-secondary"
-                            id="editProfileBtn"
-                        >
-                            <i class="fas fa-pen"></i>
-                            Edit Profile
-                        </button>
+                            <div class="security-item">
+                                <div class="security-header">
+                                    <i class="fas fa-lock"></i>
+                                    <div>
+                                        <h4>Password</h4>
+                                        <p>Change your password regularly to keep your account secure</p>
+                                    </div>
+                                </div>
+                                <button class="btn btn-small btn-secondary" id="changePasswordBtn">Change Password</button>
+                            </div>
+
+                            <div class="security-item">
+                                <div class="security-header">
+                                    <i class="fas fa-mobile-alt"></i>
+                                    <div>
+                                        <h4>Two-Factor Authentication</h4>
+                                        <p id="2faStatus">Not enabled - Increase your security</p>
+                                    </div>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+
+                            <div class="security-item">
+                                <div class="security-header">
+                                    <i class="fas fa-history"></i>
+                                    <div>
+                                        <h4>Active Sessions</h4>
+                                        <p>Manage devices accessing your account</p>
+                                    </div>
+                                </div>
+                                <button class="btn btn-small btn-secondary">View Sessions</button>
+                            </div>
+
+                            <div class="security-item">
+                                <div class="security-header">
+                                    <i class="fas fa-ban"></i>
+                                    <div>
+                                        <h4>Blocked Users</h4>
+                                        <p>Manage drivers and riders you've blocked</p>
+                                    </div>
+                                </div>
+                                <button class="btn btn-small btn-secondary">Manage Blocked</button>
+                            </div>
+                        </div>
+
+                        <!-- Change Password Form -->
+                        <div class="section-card" id="changePasswordForm" style="display: none;">
+                            <h4>Change Your Password</h4>
+                            <form>
+                                <div class="form-group">
+                                    <label for="currentPassword">Current Password</label>
+                                    <input type="password" id="currentPassword" placeholder="Enter current password" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="newPassword">New Password</label>
+                                    <input type="password" id="newPassword" placeholder="Enter new password" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="confirmPassword">Confirm Password</label>
+                                    <input type="password" id="confirmPassword" placeholder="Confirm new password" required>
+                                </div>
+                                <div class="form-actions">
+                                    <button type="submit" class="btn btn-primary">Update Password</button>
+                                    <button type="button" class="btn btn-secondary" id="cancelPasswordBtn">Cancel</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
 
 
-                        <button
-                            class="btn btn-secondary"
-                            id="paymentHistoryBtn"
-                        >
-                            <i class="fas fa-receipt"></i>
-                            Payment History
-                        </button>
+                    <!-- PRIVACY TAB -->
+                    <div class="profile-tab-content" id="privacy-tab">
+                        <div class="section-card">
+                            <h3>Privacy Settings</h3>
+
+                            <div class="privacy-item">
+                                <div class="privacy-header">
+                                    <i class="fas fa-eye"></i>
+                                    <div>
+                                        <h4>Profile Visibility</h4>
+                                        <p>Control who can see your profile</p>
+                                    </div>
+                                </div>
+                                <select class="select-sm">
+                                    <option>Public</option>
+                                    <option>Friends Only</option>
+                                    <option>Private</option>
+                                </select>
+                            </div>
+
+                            <div class="privacy-item">
+                                <div class="privacy-header">
+                                    <i class="fas fa-user-secret"></i>
+                                    <div>
+                                        <h4>Show My Rating</h4>
+                                        <p>Allow drivers to see your passenger rating</p>
+                                    </div>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+
+                            <div class="privacy-item">
+                                <div class="privacy-header">
+                                    <i class="fas fa-envelope"></i>
+                                    <div>
+                                        <h4>Email Notifications</h4>
+                                        <p>Receive updates and offers via email</p>
+                                    </div>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+
+                            <div class="privacy-item">
+                                <div class="privacy-header">
+                                    <i class="fas fa-sms"></i>
+                                    <div>
+                                        <h4>SMS Notifications</h4>
+                                        <p>Receive important updates via SMS</p>
+                                    </div>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+
+                            <div class="privacy-item">
+                                <div class="privacy-header">
+                                    <i class="fas fa-file-contract"></i>
+                                    <div>
+                                        <h4>Data & Privacy Policy</h4>
+                                        <p>Review our data usage and privacy terms</p>
+                                    </div>
+                                </div>
+                                <button class="btn btn-small btn-secondary">Read Policy</button>
+                            </div>
+                        </div>
+                    </div>
 
 
-                        <button
-                            class="btn btn-danger"
-                            id="deleteAccountBtn"
-                        >
-                            <i class="fas fa-trash"></i>
-                            Delete Account
-                        </button>
+                    <!-- PREFERENCES TAB -->
+                    <div class="profile-tab-content" id="preferences-tab">
+                        <div class="section-card">
+                            <h3>Preferences & Settings</h3>
 
+                            <div class="preference-item">
+                                <div class="preference-header">
+                                    <i class="fas fa-globe"></i>
+                                    <div>
+                                        <h4>Language</h4>
+                                        <p id="languageDisplay">English</p>
+                                    </div>
+                                </div>
+                                <select id="languageSelect" class="select-sm">
+                                    <option value="en">English</option>
+                                    <option value="fr">French</option>
+                                    <option value="es">Spanish</option>
+                                    <option value="de">German</option>
+                                    <option value="pt">Portuguese</option>
+                                </select>
+                            </div>
+
+                            <div class="preference-item">
+                                <div class="preference-header">
+                                    <i class="fas fa-moon"></i>
+                                    <div>
+                                        <h4>Dark Mode</h4>
+                                        <p>Enable dark theme for the app</p>
+                                    </div>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+
+                            <div class="preference-item">
+                                <div class="preference-header">
+                                    <i class="fas fa-bell"></i>
+                                    <div>
+                                        <h4>Notifications Sound</h4>
+                                        <p>Play sound for incoming notifications</p>
+                                    </div>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+
+                            <div class="preference-item">
+                                <div class="preference-header">
+                                    <i class="fas fa-calendar"></i>
+                                    <div>
+                                        <h4>Ride Activity Calendar</h4>
+                                        <p>View your ride history in calendar format</p>
+                                    </div>
+                                </div>
+                                <button class="btn btn-small btn-primary" id="viewCalendarBtn">
+                                    <i class="fas fa-calendar-alt"></i> View Calendar
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Activity Calendar -->
+                        <div class="section-card" id="activityCalendar" style="display: none;">
+                            <h3>Ride Activity Calendar</h3>
+                            <div class="calendar-container">
+                                <div class="calendar-header">
+                                    <button class="btn-icon" id="prevMonth">
+                                        <i class="fas fa-chevron-left"></i>
+                                    </button>
+                                    <h4 id="calendarMonth">August 2026</h4>
+                                    <button class="btn-icon" id="nextMonth">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </button>
+                                </div>
+                                <div class="calendar-weekdays">
+                                    <div>Sun</div>
+                                    <div>Mon</div>
+                                    <div>Tue</div>
+                                    <div>Wed</div>
+                                    <div>Thu</div>
+                                    <div>Fri</div>
+                                    <div>Sat</div>
+                                </div>
+                                <div id="calendarDays" class="calendar-days">
+                                    <!-- Calendar days populated by JS -->
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                 </div>

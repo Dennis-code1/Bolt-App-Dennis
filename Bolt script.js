@@ -49,6 +49,32 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
     /* =====================================
+       VALID LOCATIONS (GHANA CITIES)
+       ===================================== */
+
+    const validLocations = [
+        "Accra",
+        "Kumasi",
+        "Tema",
+        "Cape Coast",
+        "Takoradi",
+        "Sekondi",
+        "Senya",
+        "Koforidua",
+        "Tamale",
+        "Osu",
+        "Labadi",
+        "Madina",
+        "Legon",
+        "Kasoa",
+        "Ashaiman"
+    ];
+
+    let isPickupValid = false;
+    let isDestinationValid = false;
+
+
+    /* =====================================
        DRIVER DATA
        ===================================== */
 
@@ -179,6 +205,160 @@ document.addEventListener("DOMContentLoaded", function () {
             );
 
         }, 3000);
+
+    }
+
+
+    /* =====================================
+       REAL-TIME LOCATION VALIDATION
+       ===================================== */
+
+    function validateLocation(input) {
+
+        const value =
+            input.value.trim();
+
+        const isValid =
+            validLocations.some(
+                location =>
+                    location.toLowerCase() ===
+                    value.toLowerCase()
+            );
+
+        return isValid;
+
+    }
+
+
+    function updateLocationValidation(input) {
+
+        const isValid =
+            validateLocation(input);
+
+        const wrapper =
+            input.parentElement;
+
+        const feedback =
+            wrapper.querySelector(
+                ".location-feedback"
+            );
+
+
+        if (!feedback) {
+
+            return;
+
+        }
+
+
+        if (input.value.trim() === "") {
+
+            feedback.innerHTML = "";
+            feedback.className =
+                "location-feedback";
+
+            input.classList.remove(
+                "valid",
+                "invalid"
+            );
+
+        } else if (isValid) {
+
+            feedback.innerHTML =
+                '<i class="fas fa-check-circle"></i> Valid location';
+
+            feedback.className =
+                "location-feedback valid-feedback";
+
+            input.classList.remove(
+                "invalid"
+            );
+            input.classList.add("valid");
+
+        } else {
+
+            const suggestions =
+                getLocationSuggestions(
+                    input.value
+                );
+
+            let suggestionText =
+                '<i class="fas fa-exclamation-circle"></i> Invalid location';
+
+            if (
+                suggestions.length > 0
+            ) {
+
+                suggestionText +=
+                    '<div class="suggestions">' +
+                    suggestions
+                        .map(
+                            location =>
+                                `<span>${location}</span>`
+                        )
+                        .join("") +
+                    "</div>";
+
+            }
+
+            feedback.innerHTML =
+                suggestionText;
+
+            feedback.className =
+                "location-feedback invalid-feedback";
+
+            input.classList.remove(
+                "valid"
+            );
+            input.classList.add("invalid");
+
+        }
+
+    }
+
+
+    function getLocationSuggestions(input) {
+
+        const term =
+            input.toLowerCase();
+
+        return validLocations
+            .filter(
+                location =>
+                    location
+                        .toLowerCase()
+                        .includes(term)
+            )
+            .slice(0, 3);
+
+    }
+
+
+    function getSuggestionClick(suggestion, inputId) {
+
+        document
+            .getElementById(inputId)
+            .value = suggestion;
+
+        const input =
+            document.getElementById(inputId);
+
+        updateLocationValidation(input);
+
+        // Update validity flags
+        if (inputId === "pickupLocation") {
+
+            isPickupValid =
+                validateLocation(input);
+
+        } else if (
+            inputId === "dropoffLocation"
+        ) {
+
+            isDestinationValid =
+                validateLocation(input);
+
+        }
 
     }
 
@@ -526,6 +706,136 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
     /* =====================================
+       QUICK BOOKING TO RIDE PAGE
+       ===================================== */
+
+    document
+        .getElementById("quickBookBtn")
+        .addEventListener(
+            "click",
+            function () {
+
+                const pickup =
+                    document
+                        .getElementById(
+                            "quickPickup"
+                        )
+                        .value.trim();
+
+
+                const destination =
+                    document
+                        .getElementById(
+                            "quickDestination"
+                        )
+                        .value.trim();
+
+
+                if (!pickup ||
+                    !destination) {
+
+                    notify(
+                        "Please enter pickup and destination locations."
+                    );
+
+                    return;
+
+                }
+
+
+                if (
+                    !validateLocation(
+                        document
+                            .getElementById(
+                                "quickPickup"
+                            )
+                    )
+                ) {
+
+                    notify(
+                        "Please enter a valid pickup location."
+                    );
+
+                    return;
+
+                }
+
+
+                if (
+                    !validateLocation(
+                        document
+                            .getElementById(
+                                "quickDestination"
+                            )
+                    )
+                ) {
+
+                    notify(
+                        "Please enter a valid destination location."
+                    );
+
+                    return;
+
+                }
+
+
+                if (
+                    pickup.toLowerCase() ===
+                    destination.toLowerCase()
+                ) {
+
+                    notify(
+                        "Pickup and destination cannot be the same."
+                    );
+
+                    return;
+
+                }
+
+
+                // Transfer values to main ride form
+                document
+                    .getElementById(
+                        "pickupLocation"
+                    )
+                    .value = pickup;
+
+
+                document
+                    .getElementById(
+                        "dropoffLocation"
+                    )
+                    .value = destination;
+
+
+                // Update validation for main form
+                updateLocationValidation(
+                    document.getElementById(
+                        "pickupLocation"
+                    )
+                );
+
+                updateLocationValidation(
+                    document.getElementById(
+                        "dropoffLocation"
+                    )
+                );
+
+
+                // Navigate to ride page
+                showPage("ridePage");
+
+
+                // Show notification
+                notify(
+                    "Ready to book your ride! Select ride type and confirm."
+                );
+
+            }
+        );
+
+
+    /* =====================================
        MOBILE MENU
        ===================================== */
 
@@ -862,6 +1172,42 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
                 if (
+                    !validateLocation(
+                        document
+                            .getElementById(
+                                "pickupLocation"
+                            )
+                    )
+                ) {
+
+                    notify(
+                        "Please enter a valid pickup location."
+                    );
+
+                    return;
+
+                }
+
+
+                if (
+                    !validateLocation(
+                        document
+                            .getElementById(
+                                "dropoffLocation"
+                            )
+                    )
+                ) {
+
+                    notify(
+                        "Please enter a valid destination location."
+                    );
+
+                    return;
+
+                }
+
+
+                if (
                     pickup.toLowerCase() ===
                     destination.toLowerCase()
                 ) {
@@ -981,6 +1327,84 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     },
                     1500
+                );
+
+            }
+        );
+
+
+    /* =====================================
+       REAL-TIME LOCATION VALIDATION LISTENERS
+       ===================================== */
+
+    document
+        .getElementById(
+            "pickupLocation"
+        )
+        .addEventListener(
+            "input",
+            function () {
+
+                updateLocationValidation(
+                    this
+                );
+
+                isPickupValid =
+                    validateLocation(
+                        this
+                    );
+
+            }
+        );
+
+
+    document
+        .getElementById(
+            "dropoffLocation"
+        )
+        .addEventListener(
+            "input",
+            function () {
+
+                updateLocationValidation(
+                    this
+                );
+
+                isDestinationValid =
+                    validateLocation(
+                        this
+                    );
+
+            }
+        );
+
+
+    document
+        .getElementById(
+            "quickPickup"
+        )
+        .addEventListener(
+            "input",
+            function () {
+
+                updateLocationValidation(
+                    this
+                );
+
+            }
+        );
+
+
+    document
+        .getElementById(
+            "quickDestination"
+        )
+        .addEventListener(
+            "input",
+            function () {
+
+                updateLocationValidation(
+                    this
                 );
 
             }
@@ -1394,7 +1818,23 @@ document.addEventListener("DOMContentLoaded", function () {
 
         document
             .getElementById(
+                "displayName"
+            )
+            .textContent =
+            currentUser.name;
+
+
+        document
+            .getElementById(
                 "profileEmail"
+            )
+            .textContent =
+            currentUser.email;
+
+
+        document
+            .getElementById(
+                "displayEmail"
             )
             .textContent =
             currentUser.email;
@@ -1410,7 +1850,23 @@ document.addEventListener("DOMContentLoaded", function () {
 
         document
             .getElementById(
+                "displayPhone"
+            )
+            .textContent =
+            currentUser.phone;
+
+
+        document
+            .getElementById(
                 "totalRides"
+            )
+            .textContent =
+            rideHistory.length;
+
+
+        document
+            .getElementById(
+                "totalRidesStats"
             )
             .textContent =
             rideHistory.length;
@@ -1444,9 +1900,578 @@ document.addEventListener("DOMContentLoaded", function () {
             `GHS ${totalSpent.toFixed(2)}`;
 
 
+        document
+            .getElementById(
+                "spentStats"
+            )
+            .textContent =
+            `GHS ${totalSpent.toFixed(2)}`;
+
+
         displayRideHistory();
 
     }
+
+
+    /* =====================================
+       PROFILE TABS
+       ===================================== */
+
+    // Tab switching
+    const profileTabBtns =
+        document.querySelectorAll(
+            ".profile-tab-btn"
+        );
+
+    profileTabBtns.forEach(
+        function (btn) {
+
+            btn.addEventListener(
+                "click",
+                function () {
+
+                    const tabName =
+                        this.getAttribute(
+                            "data-tab"
+                        );
+
+
+                    // Remove active from all
+                    profileTabBtns.forEach(
+                        function (b) {
+
+                            b.classList.remove(
+                                "active"
+                            );
+
+                        }
+                    );
+
+                    const contents =
+                        document.querySelectorAll(
+                            ".profile-tab-content"
+                        );
+
+                    contents.forEach(
+                        function (content) {
+
+                            content.classList.remove(
+                                "active"
+                            );
+
+                        }
+                    );
+
+
+                    // Add active to clicked
+                    this.classList.add(
+                        "active"
+                    );
+
+                    document
+                        .getElementById(
+                            tabName +
+                            "-tab"
+                        )
+                        .classList.add(
+                            "active"
+                        );
+
+                }
+            );
+
+        }
+    );
+
+
+    // Edit Personal Info
+    document
+        .getElementById(
+            "editPersonalBtn"
+        )
+        .addEventListener(
+            "click",
+            function () {
+
+                document
+                    .getElementById(
+                        "personalEditForm"
+                    )
+                    .classList.remove(
+                        "hidden"
+                    );
+
+            }
+        );
+
+
+    document
+        .getElementById(
+            "cancelPersonalBtn"
+        )
+        .addEventListener(
+            "click",
+            function () {
+
+                document
+                    .getElementById(
+                        "personalEditForm"
+                    )
+                    .classList.add(
+                        "hidden"
+                    );
+
+            }
+        );
+
+
+    document
+        .getElementById(
+            "personalEditForm"
+        )
+        .addEventListener(
+            "submit",
+            function (e) {
+
+                e.preventDefault();
+
+                currentUser.name =
+                    document
+                        .getElementById(
+                            "editName"
+                        ).value;
+
+                currentUser.phone =
+                    document
+                        .getElementById(
+                            "editPhone"
+                        ).value;
+
+
+                localStorage.setItem(
+                    "louiseUser",
+                    JSON.stringify(
+                        currentUser
+                    )
+                );
+
+
+                updateProfile();
+
+
+                notify(
+                    "Profile updated successfully!"
+                );
+
+
+                document
+                    .getElementById(
+                        "personalEditForm"
+                    )
+                    .classList.add(
+                        "hidden"
+                    );
+
+            }
+        );
+
+
+    // Add Address
+    document
+        .getElementById(
+            "addAddressBtn"
+        )
+        .addEventListener(
+            "click",
+            function () {
+
+                document
+                    .getElementById(
+                        "addAddressForm"
+                    )
+                    .classList.remove(
+                        "hidden"
+                    );
+
+            }
+        );
+
+
+    document
+        .getElementById(
+            "cancelAddressBtn"
+        )
+        .addEventListener(
+            "click",
+            function () {
+
+                document
+                    .getElementById(
+                        "addAddressForm"
+                    )
+                    .classList.add(
+                        "hidden"
+                    );
+
+            }
+        );
+
+
+    document
+        .getElementById(
+            "addAddressForm"
+        )
+        .addEventListener(
+            "submit",
+            function (e) {
+
+                e.preventDefault();
+
+                notify(
+                    "Address saved successfully!"
+                );
+
+
+                document
+                    .getElementById(
+                        "addAddressForm"
+                    )
+                    .classList.add(
+                        "hidden"
+                    );
+
+            }
+        );
+
+
+    // Change Password
+    document
+        .getElementById(
+            "changePasswordBtn"
+        )
+        .addEventListener(
+            "click",
+            function () {
+
+                document
+                    .getElementById(
+                        "changePasswordForm"
+                    )
+                    .style.display =
+                    "block";
+
+            }
+        );
+
+
+    document
+        .getElementById(
+            "cancelPasswordBtn"
+        )
+        .addEventListener(
+            "click",
+            function () {
+
+                document
+                    .getElementById(
+                        "changePasswordForm"
+                    )
+                    .style.display =
+                    "none";
+
+            }
+        );
+
+
+    // Calendar
+    document
+        .getElementById(
+            "viewCalendarBtn"
+        )
+        .addEventListener(
+            "click",
+            function () {
+
+                const calendar =
+                    document.getElementById(
+                        "activityCalendar"
+                    );
+
+                if (
+                    calendar.style.display ===
+                    "none"
+                ) {
+
+                    calendar.style.display =
+                        "block";
+
+                    generateCalendar(
+                        new Date()
+                    );
+
+                } else {
+
+                    calendar.style.display =
+                        "none";
+
+                }
+
+            }
+        );
+
+
+    function generateCalendar(date) {
+
+        const year = date.getFullYear();
+        const month = date.getMonth();
+
+        const firstDay =
+            new Date(
+                year,
+                month,
+                1
+            );
+
+        const lastDay =
+            new Date(
+                year,
+                month + 1,
+                0
+            );
+
+        const prevLastDay =
+            new Date(
+                year,
+                month,
+                0
+            );
+
+
+        const calendarDays =
+            document.getElementById(
+                "calendarDays"
+            );
+
+        calendarDays.innerHTML = "";
+
+
+        const monthYear =
+            new Date(year, month);
+
+        document
+            .getElementById(
+                "calendarMonth"
+            )
+            .textContent =
+            monthYear.toLocaleDateString(
+                "en-US",
+                {
+                    month: "long",
+                    year: "numeric"
+                }
+            );
+
+
+        // Previous month days
+        for (
+            let i =
+            prevLastDay.getDate() -
+            firstDay.getDay() +
+            1;
+            i <= prevLastDay.getDate();
+            i++
+        ) {
+
+            const dayEl =
+                document.createElement(
+                    "div"
+                );
+
+            dayEl.className =
+                "calendar-day other-month";
+
+            dayEl.textContent = i;
+
+            calendarDays.appendChild(
+                dayEl
+            );
+
+        }
+
+
+        // Current month days
+        for (
+            let i = 1;
+            i <= lastDay.getDate();
+            i++
+        ) {
+
+            const dayEl =
+                document.createElement(
+                    "div"
+                );
+
+            dayEl.className =
+                "calendar-day";
+
+            dayEl.textContent = i;
+
+
+            const dateStr =
+                `${year}-${String(
+                    month + 1
+                ).padStart(2, "0")}-${String(
+                    i
+                ).padStart(2, "0")}`;
+
+
+            // Check if has ride
+            const hasRide =
+                rideHistory.some(
+                    function (ride) {
+
+                        return ride.date ===
+                            dateStr;
+
+                    }
+                );
+
+            if (hasRide) {
+
+                dayEl.classList.add(
+                    "has-ride"
+                );
+
+            }
+
+
+            // Highlight today
+            const today = new Date();
+
+            if (
+                i === today.getDate() &&
+                month ===
+                today.getMonth() &&
+                year ===
+                today.getFullYear()
+            ) {
+
+                dayEl.classList.add(
+                    "today"
+                );
+
+            }
+
+
+            calendarDays.appendChild(
+                dayEl
+            );
+
+        }
+
+
+        // Next month days
+        for (
+            let i = 1;
+            i <= (42 - lastDay.getDate() -
+                firstDay.getDay());
+            i++
+        ) {
+
+            const dayEl =
+                document.createElement(
+                    "div"
+                );
+
+            dayEl.className =
+                "calendar-day other-month";
+
+            dayEl.textContent = i;
+
+            calendarDays.appendChild(
+                dayEl
+            );
+
+        }
+
+    }
+
+
+    document
+        .getElementById(
+            "prevMonth"
+        )
+        .addEventListener(
+            "click",
+            function () {
+
+                const monthText =
+                    document
+                        .getElementById(
+                            "calendarMonth"
+                        ).textContent;
+
+                const date = new Date(
+                    monthText
+                );
+
+                date.setMonth(
+                    date.getMonth() - 1
+                );
+
+                generateCalendar(date);
+
+            }
+        );
+
+
+    document
+        .getElementById(
+            "nextMonth"
+        )
+        .addEventListener(
+            "click",
+            function () {
+
+                const monthText =
+                    document
+                        .getElementById(
+                            "calendarMonth"
+                        ).textContent;
+
+                const date = new Date(
+                    monthText
+                );
+
+                date.setMonth(
+                    date.getMonth() + 1
+                );
+
+                generateCalendar(date);
+
+            }
+        );
+
+
+    // Language selector
+    document
+        .getElementById(
+            "languageSelect"
+        )
+        .addEventListener(
+            "change",
+            function () {
+
+                notify(
+                    "Language changed to " +
+                    this.options[
+                        this.selectedIndex
+                    ].text
+
+                );
+
+            }
+        );
 
 
     /* =====================================
