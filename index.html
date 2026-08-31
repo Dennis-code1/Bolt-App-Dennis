@@ -1418,7 +1418,7 @@
                                     <i class="fas fa-plus"></i> Add Address
                                 </button>
                             </div>
-                            <div id="addressesList" class="addresses-list"></div>
+                            <div class="addresses-list" id="personalAddressesList"></div>
                             <form id="addAddressForm" class="hidden address-form">
                                 <div class="form-group">
                                     <label for="addressLabel">Address Label</label>
@@ -1485,97 +1485,6 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-
-
-                    <!-- ADDRESSES TAB -->
-                    <div class="profile-tab-content" id="addresses-tab">
-                        <div class="section-card">
-                            <div class="section-header">
-                                <h3>Saved Addresses</h3>
-                                <button class="btn btn-small btn-primary" id="addAddressBtn">
-                                    <i class="fas fa-plus"></i> Add Address
-                                </button>
-                            </div>
-
-                            <div id="addressesList" class="addresses-list">
-                                <!-- Home Address -->
-                                <div class="address-item">
-                                    <div class="address-type">
-                                        <i class="fas fa-home"></i>
-                                        <span>Home</span>
-                                    </div>
-                                    <p class="address-text">123 Main Street, Osu, Accra</p>
-                                    <div class="address-actions">
-                                        <button class="btn-icon" title="Edit">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button class="btn-icon btn-danger" title="Delete">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <!-- Work Address -->
-                                <div class="address-item">
-                                    <div class="address-type">
-                                        <i class="fas fa-briefcase"></i>
-                                        <span>Work</span>
-                                    </div>
-                                    <p class="address-text">456 Business Plaza, Legon, Accra</p>
-                                    <div class="address-actions">
-                                        <button class="btn-icon" title="Edit">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button class="btn-icon btn-danger" title="Delete">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <!-- Other Places -->
-                                <div class="address-item">
-                                    <div class="address-type">
-                                        <i class="fas fa-map-pin"></i>
-                                        <span>Gym</span>
-                                    </div>
-                                    <p class="address-text">789 Fitness Center, Madina, Accra</p>
-                                    <div class="address-actions">
-                                        <button class="btn-icon" title="Edit">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button class="btn-icon btn-danger" title="Delete">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Add Address Form (Hidden) -->
-                            <form id="addAddressForm" class="hidden address-form">
-                                <div class="form-group">
-                                    <label for="addressLabel">Address Label</label>
-                                    <select id="addressLabel" required>
-                                        <option value="">Select Type</option>
-                                        <option value="home">Home</option>
-                                        <option value="work">Work</option>
-                                        <option value="other">Other Place</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label for="addressName">Place Name (Optional)</label>
-                                    <input type="text" id="addressName" placeholder="e.g., Mom's House">
-                                </div>
-                                <div class="form-group">
-                                    <label for="addressText">Full Address</label>
-                                    <textarea id="addressText" placeholder="Enter complete address" rows="3" required></textarea>
-                                </div>
-                                <div class="form-actions">
-                                    <button type="submit" class="btn btn-primary">Save Address</button>
-                                    <button type="button" class="btn btn-secondary" id="cancelAddressBtn">Cancel</button>
-                                </div>
-                            </form>
                         </div>
                     </div>
 

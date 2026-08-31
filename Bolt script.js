@@ -515,10 +515,17 @@ function startRideSimulation() {
             etaElement.textContent = 'Driver arrived!';
             showNotification('Your driver has arrived', 'success');
         } else {
-            etaElement.textContent = `${arrivalTime} minutes`;
+            etaElement.textContent = `${arrivalTime} minute${arrivalTime === 1 ? '' : 's'}`;
             arrivalTime--;
         }
     }, 1000);
+}
+
+const callDriverBtn = document.getElementById('callDriverBtn');
+if (callDriverBtn) {
+    callDriverBtn.addEventListener('click', () => {
+        showNotification('Calling driver...', 'info');
+    });
 }
 
 document.getElementById('cancelRideBtn').addEventListener('click', () => {
@@ -620,11 +627,12 @@ function rejectRideRequest() {
 
 document.getElementById('paymentMethod').addEventListener('change', function() {
     const momoFields = document.getElementById('momoFields');
-    if (this.value === 'momo') {
-        momoFields.style.display = 'block';
-    } else {
-        momoFields.style.display = 'none';
-    }
+    const cardFields = document.getElementById('cardFields');
+    const shouldShowMomo = this.value === 'momo';
+    const shouldShowCard = this.value === 'card';
+
+    if (momoFields) momoFields.style.display = shouldShowMomo ? 'block' : 'none';
+    if (cardFields) cardFields.style.display = shouldShowCard ? 'block' : 'none';
 });
 
 document.getElementById('paymentForm').addEventListener('submit', (e) => {
@@ -640,10 +648,21 @@ document.getElementById('paymentForm').addEventListener('submit', (e) => {
             return;
         }
     }
+
+    if (paymentMethod === 'card') {
+        const cardName = document.getElementById('cardName').value.trim();
+        const cardNumber = document.getElementById('cardNumber').value.trim();
+        const cardExpiry = document.getElementById('cardExpiry').value.trim();
+        const cardCvv = document.getElementById('cardCvv').value.trim();
+
+        if (!cardName || !cardNumber || !cardExpiry || !cardCvv) {
+            showNotification('Please complete all card details', 'error');
+            return;
+        }
+    }
     
     showNotification(`Payment of ${totalAmount} processed successfully!`, 'success');
     
-    // Show rating section
     document.getElementById('paymentForm').style.display = 'none';
     document.getElementById('ratingSection').style.display = 'block';
 });
@@ -724,16 +743,14 @@ function loadProfileData() {
     const securityPhone = document.getElementById('securityPhone');
     if (securityLoginEmail) securityLoginEmail.textContent = user.email || 'Not provided';
     if (securityPhone) securityPhone.textContent = user.phone || 'Not provided';
-    
-    if (user.type === 'rider') {
-        document.getElementById('totalRides').textContent = user.totalRides;
-        document.getElementById('myRating').textContent = `${user.rating} ⭐`;
-        document.getElementById('totalSpent').textContent = `GHS ${user.totalSpent.toFixed(2)}`;
-    } else {
-        document.getElementById('totalRides').textContent = user.completedRides;
-        document.getElementById('myRating').textContent = `${user.rating} ⭐`;
-        document.getElementById('totalSpent').textContent = `GHS ${user.totalEarnings.toFixed(2)}`;
-    }
+
+    const totalRidesStats = document.getElementById('totalRidesStats');
+    const ratingStats = document.getElementById('ratingStats');
+    const spentStats = document.getElementById('spentStats');
+
+    if (totalRidesStats) totalRidesStats.textContent = user.type === 'rider' ? String(user.totalRides) : String(user.completedRides || 0);
+    if (ratingStats) ratingStats.textContent = `${user.rating} ⭐`;
+    if (spentStats) spentStats.textContent = `GH₵${(user.type === 'rider' ? user.totalSpent : user.totalEarnings || 0).toFixed(2)}`;
     
     populateRideHistory();
     renderSavedPlaces();
@@ -782,72 +799,74 @@ document.querySelectorAll('.profile-tab-btn').forEach(button => {
 });
 
 function renderSavedPlaces() {
-    const list = document.getElementById('addressesList');
-    if (!list) return;
+    const lists = document.querySelectorAll('.addresses-list');
+    if (!lists.length) return;
 
-    list.innerHTML = '';
+    lists.forEach(list => {
+        list.innerHTML = '';
 
-    appState.savedPlaces.forEach(place => {
-        const item = document.createElement('div');
-        item.className = 'address-item';
+        appState.savedPlaces.forEach(place => {
+            const item = document.createElement('div');
+            item.className = 'address-item';
 
-        const iconMap = {
-            home: 'fa-home',
-            work: 'fa-briefcase',
-            other: 'fa-map-pin'
-        };
+            const iconMap = {
+                home: 'fa-home',
+                work: 'fa-briefcase',
+                other: 'fa-map-pin'
+            };
 
-        const labelMap = {
-            home: 'Home',
-            work: 'Work',
-            other: place.name || 'Other Place'
-        };
+            const labelMap = {
+                home: 'Home',
+                work: 'Work',
+                other: place.name || 'Other Place'
+            };
 
-        item.innerHTML = `
-            <div class="address-type">
-                <i class="fas ${iconMap[place.label] || 'fa-map-pin'}"></i>
-                <span>${labelMap[place.label] || place.name}</span>
-            </div>
-            <p class="address-text">${place.address}</p>
-            <div class="address-actions">
-                <button class="btn-icon" data-action="edit" data-id="${place.id}" title="Edit">
-                    <i class="fas fa-edit"></i>
-                </button>
-                <button class="btn-icon btn-danger" data-action="delete" data-id="${place.id}" title="Delete">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </div>
-        `;
+            item.innerHTML = `
+                <div class="address-type">
+                    <i class="fas ${iconMap[place.label] || 'fa-map-pin'}"></i>
+                    <span>${labelMap[place.label] || place.name}</span>
+                </div>
+                <p class="address-text">${place.address}</p>
+                <div class="address-actions">
+                    <button class="btn-icon" data-action="edit" data-id="${place.id}" title="Edit">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn-icon btn-danger" data-action="delete" data-id="${place.id}" title="Delete">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            `;
 
-        list.appendChild(item);
-    });
-
-    list.querySelectorAll('[data-action="delete"]').forEach(button => {
-        button.addEventListener('click', () => {
-            const id = Number(button.dataset.id);
-            appState.savedPlaces = appState.savedPlaces.filter(place => place.id !== id);
-            renderSavedPlaces();
-            showNotification('Saved place deleted', 'info');
+            list.appendChild(item);
         });
-    });
 
-    list.querySelectorAll('[data-action="edit"]').forEach(button => {
-        button.addEventListener('click', () => {
-            const id = Number(button.dataset.id);
-            const place = appState.savedPlaces.find(item => item.id === id);
-            if (!place) return;
+        list.querySelectorAll('[data-action="delete"]').forEach(button => {
+            button.addEventListener('click', () => {
+                const id = Number(button.dataset.id);
+                appState.savedPlaces = appState.savedPlaces.filter(place => place.id !== id);
+                renderSavedPlaces();
+                showNotification('Saved place deleted', 'info');
+            });
+        });
 
-            const form = document.getElementById('addAddressForm');
-            const label = document.getElementById('addressLabel');
-            const name = document.getElementById('addressName');
-            const text = document.getElementById('addressText');
+        list.querySelectorAll('[data-action="edit"]').forEach(button => {
+            button.addEventListener('click', () => {
+                const id = Number(button.dataset.id);
+                const place = appState.savedPlaces.find(item => item.id === id);
+                if (!place) return;
 
-            label.value = place.label;
-            name.value = place.name || '';
-            text.value = place.address;
-            form.classList.remove('hidden');
-            form.dataset.editId = String(place.id);
-            showNotification('Edit your saved place and save to update it', 'info');
+                const form = document.getElementById('addAddressForm');
+                const label = document.getElementById('addressLabel');
+                const name = document.getElementById('addressName');
+                const text = document.getElementById('addressText');
+
+                label.value = place.label;
+                name.value = place.name || '';
+                text.value = place.address;
+                form.classList.remove('hidden');
+                form.dataset.editId = String(place.id);
+                showNotification('Edit your saved place and save to update it', 'info');
+            });
         });
     });
 }
@@ -1101,9 +1120,12 @@ if (personalEditForm) {
     });
 }
 
-document.getElementById('paymentHistoryBtn').addEventListener('click', () => {
-    showNotification('Payment history coming soon!', 'info');
-});
+const paymentHistoryBtn = document.getElementById('paymentHistoryBtn');
+if (paymentHistoryBtn) {
+    paymentHistoryBtn.addEventListener('click', () => {
+        showNotification('Payment history coming soon!', 'info');
+    });
+}
 
 const deleteAccountBtn = document.getElementById('deleteAccountBtn');
 
