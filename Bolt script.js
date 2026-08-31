@@ -26,8 +26,8 @@ const GHANA_CENTER = [7.9465, -1.0232];
 // Mock Database for Demo
 const mockDatabase = {
     users: [
-        { id: 1, email: 'aloysioudennis09@gmail.com', password: '123456', name: 'Aloysious Dennis', phone: '0535915543', type: 'rider', rating: 4.8, totalRides: 12, totalSpent: 250 },
-        { id: 2, email: 'driver@test.com', password: '123456', name: 'John Mensah', phone: '0551234567', type: 'driver', rating: 4.9, completedRides: 250, totalEarnings: 5000 }
+        { id: 1, email: 'aloysioudennis09@gmail.com', password: '123456', name: 'Aloysious Dennis', phone: '0535915543', type: 'rider', rating: 4.8, totalRides: 12, totalSpent: 250, twoFactor: false },
+        { id: 2, email: 'driver@test.com', password: '123456', name: 'John Mensah', phone: '0551234567', type: 'driver', rating: 4.9, completedRides: 250, totalEarnings: 5000, twoFactor: false }
     ],
     drivers: [
         { id: 1, name: 'John Mensah', rating: 4.9, car: 'Toyota Corolla • GR 1234 PM', distance: '2 km away', price: 'GHS 15.50' },
@@ -260,25 +260,49 @@ document.getElementById('switchToLogin').addEventListener('click', (e) => {
 document.getElementById('loginForm').addEventListener('submit', (e) => {
     e.preventDefault();
     
-    const email = document.getElementById('loginEmail').value;
+    const email = document.getElementById('loginEmail').value.trim();
     const password = document.getElementById('loginPassword').value;
+    const loginCode = document.getElementById('loginCode').value.trim();
     
-    // Mock authentication
     const user = mockDatabase.users.find(u => u.email === email && u.password === password);
     
-    if (user) {
-        appState.user = user;
-        appState.isLoggedIn = true;
-        appState.userType = user.type;
-        
-        updateNavbar();
-        showNotification(`Welcome ${user.name}!`, 'success');
-        showPage('homePage');
-        
-        // Reset form
-        document.getElementById('loginForm').reset();
-    } else {
+    if (!user) {
         showNotification('Invalid email or password', 'error');
+        return;
+    }
+
+    if (user.twoFactor) {
+        const requiredCode = generateTwoFactorCode(user.email);
+        const codeWrap = document.getElementById('loginCodeWrap');
+
+        if (codeWrap) {
+            codeWrap.style.display = 'block';
+        }
+
+        if (!loginCode) {
+            showNotification(`Face lock is enabled. Use the 6-digit code: ${requiredCode}`, 'info');
+            return;
+        }
+
+        if (loginCode !== requiredCode) {
+            showNotification(`Wrong security code. Demo code: ${requiredCode}`, 'error');
+            return;
+        }
+    }
+
+    appState.user = user;
+    appState.isLoggedIn = true;
+    appState.userType = user.type;
+    
+    updateNavbar();
+    updateTwoFactorStatus();
+    showNotification(`Welcome ${user.name}!`, 'success');
+    showPage('homePage');
+    
+    document.getElementById('loginForm').reset();
+    const codeWrap = document.getElementById('loginCodeWrap');
+    if (codeWrap) {
+        codeWrap.style.display = 'none';
     }
 });
 
@@ -310,7 +334,8 @@ document.getElementById('signupForm').addEventListener('submit', (e) => {
         totalRides: 0,
         totalSpent: 0,
         completedRides: 0,
-        totalEarnings: 0
+        totalEarnings: 0,
+        twoFactor: false
     };
     
     mockDatabase.users.push(newUser);
@@ -319,6 +344,7 @@ document.getElementById('signupForm').addEventListener('submit', (e) => {
     appState.userType = accountType;
     
     updateNavbar();
+    updateTwoFactorStatus();
     showNotification(`Account created successfully! Welcome ${name}!`, 'success');
     showPage('homePage');
     document.getElementById('signupForm').reset();
@@ -333,6 +359,28 @@ function logout() {
     updateNavbar();
     showNotification('Logged out successfully', 'success');
     showPage('homePage');
+}
+
+function generateTwoFactorCode(email) {
+    let hash = 0;
+    for (let i = 0; i < email.length; i++) {
+        hash = (hash * 31 + email.charCodeAt(i)) >>> 0;
+    }
+
+    return String((hash % 900000) + 100000);
+}
+
+function updateTwoFactorStatus() {
+    const toggle = document.getElementById('twoFactorToggle');
+    const status = document.getElementById('twoFactorStatus');
+
+    if (!toggle || !status) return;
+
+    const enabled = !!(appState.user && appState.user.twoFactor);
+    toggle.checked = enabled;
+    status.textContent = enabled
+        ? 'Enabled - Face lock / 2-step security active'
+        : 'Not enabled - Increase your security';
 }
 
 function updateNavbar() {
@@ -705,6 +753,27 @@ document.getElementById('editProfileBtn').addEventListener('click', () => {
     showNotification('Profile editing coming soon!', 'info');
 });
 
+const twoFactorToggle = document.getElementById('twoFactorToggle');
+
+if (twoFactorToggle) {
+    twoFactorToggle.addEventListener('change', () => {
+        if (!appState.user) {
+            twoFactorToggle.checked = false;
+            showNotification('Please login first to enable Face Lock security', 'info');
+            return;
+        }
+
+        appState.user.twoFactor = twoFactorToggle.checked;
+        updateTwoFactorStatus();
+        showNotification(
+            twoFactorToggle.checked
+                ? 'Face Lock / 2FA enabled successfully'
+                : 'Face Lock / 2FA disabled',
+            twoFactorToggle.checked ? 'success' : 'info'
+        );
+    });
+}
+
 const personalEditForm = document.getElementById('personalEditForm');
 const editPersonalBtn = document.getElementById('editPersonalBtn');
 const cancelPersonalBtn = document.getElementById('cancelPersonalBtn');
@@ -793,6 +862,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeMap('liveMapContainer', GHANA_CENTER);
     showPage('homePage');
     updateNavbar();
+    updateTwoFactorStatus();
     
     // For demo purposes, log available test accounts
     console.log('Demo Accounts:');

@@ -511,6 +511,22 @@
                             </div>
                         </div>
 
+                        <div class="form-group" id="loginCodeWrap" style="display: none;">
+                            <label for="loginCode">Face Lock / 2FA Code</label>
+
+                            <div class="input-wrapper">
+                                <i class="fas fa-shield-halved"></i>
+
+                                <input
+                                    type="text"
+                                    id="loginCode"
+                                    inputmode="numeric"
+                                    maxlength="6"
+                                    placeholder="Enter 6-digit security code"
+                                >
+                            </div>
+                        </div>
+
 
                         <button type="submit" class="btn btn-primary btn-full">
                             Login
@@ -743,15 +759,15 @@
 
                                 <select id="rideType" required>
                                     <option value="economy">
-                                        Economy - GH₵5 base fare
+                                        Economy - GH₵15 base fare
                                     </option>
 
                                     <option value="comfort">
-                                        Comfort - GH₵8 base fare
+                                        Comfort - GH₵28 base fare
                                     </option>
 
                                     <option value="premium">
-                                        Premium - GH₵12 base fare
+                                        Premium - GH₵32 base fare
                                     </option>
                                 </select>
 
@@ -1608,12 +1624,12 @@
                                 <div class="security-header">
                                     <i class="fas fa-mobile-alt"></i>
                                     <div>
-                                        <h4>Two-Factor Authentication</h4>
-                                        <p id="2faStatus">Not enabled - Increase your security</p>
+                                        <h4>Face Lock / Two-Factor Authentication</h4>
+                                        <p id="twoFactorStatus">Not enabled - Increase your security</p>
                                     </div>
                                 </div>
                                 <label class="toggle-switch">
-                                    <input type="checkbox">
+                                    <input type="checkbox" id="twoFactorToggle">
                                     <span class="toggle-slider"></span>
                                 </label>
                             </div>
