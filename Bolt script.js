@@ -705,6 +705,59 @@ document.getElementById('editProfileBtn').addEventListener('click', () => {
     showNotification('Profile editing coming soon!', 'info');
 });
 
+const personalEditForm = document.getElementById('personalEditForm');
+const editPersonalBtn = document.getElementById('editPersonalBtn');
+const cancelPersonalBtn = document.getElementById('cancelPersonalBtn');
+
+if (editPersonalBtn) {
+    editPersonalBtn.addEventListener('click', () => {
+        const displayName = document.getElementById('displayName').textContent.trim();
+        const displayPhone = document.getElementById('displayPhone').textContent.trim();
+
+        document.getElementById('editName').value = displayName;
+        document.getElementById('editPhone').value = displayPhone;
+        document.getElementById('editDOB').value = '';
+        document.getElementById('editGender').value = '';
+        personalEditForm.classList.remove('hidden');
+    });
+}
+
+if (cancelPersonalBtn) {
+    cancelPersonalBtn.addEventListener('click', () => {
+        personalEditForm.reset();
+        personalEditForm.classList.add('hidden');
+    });
+}
+
+if (personalEditForm) {
+    personalEditForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        const name = document.getElementById('editName').value.trim();
+        const phone = document.getElementById('editPhone').value.trim();
+        const dob = document.getElementById('editDOB').value;
+        const gender = document.getElementById('editGender').value;
+
+        if (!name || !phone || !dob || !gender) {
+            showNotification('Please complete all personal information fields before saving.', 'error');
+            return;
+        }
+
+        document.getElementById('displayName').textContent = name;
+        document.getElementById('displayPhone').textContent = phone;
+        document.getElementById('displayDOB').textContent = new Date(dob).toLocaleDateString('en-US', {
+            month: 'long',
+            day: 'numeric',
+            year: 'numeric'
+        });
+        document.getElementById('displayGender').textContent = gender.charAt(0).toUpperCase() + gender.slice(1);
+
+        personalEditForm.reset();
+        personalEditForm.classList.add('hidden');
+        showNotification('Personal information saved successfully.', 'success');
+    });
+}
+
 document.getElementById('paymentHistoryBtn').addEventListener('click', () => {
     showNotification('Payment history coming soon!', 'info');
 });
