@@ -10,7 +10,14 @@ const appState = {
     currentRide: null,
     activeRideRequest: null,
     driverOnline: false,
-    rating: 0
+    rating: 0,
+    savedPlaces: [
+        { id: 1, label: 'home', name: 'Home', address: '123 Main Street, Osu, Accra' },
+        { id: 2, label: 'work', name: 'Work', address: '456 Business Plaza, Legon, Accra' },
+        { id: 3, label: 'other', name: 'Gym', address: '789 Fitness Center, Madina, Accra' }
+    ],
+    calendarMonth: new Date().getMonth(),
+    calendarYear: new Date().getFullYear()
 };
 
 const mapState = {
@@ -35,9 +42,9 @@ const mockDatabase = {
         { id: 3, name: 'Kwame Boateng', rating: 4.8, car: 'Nissan Altima • GR 9012 PM', distance: '4 km away', price: 'GHS 22.50' }
     ],
     rides: [
-        { id: 1, from: 'Osu, Accra', to: 'Airport, Accra', fare: 25.50, date: '2024-05-10', driver: 'John Mensah', rating: 5 },
-        { id: 2, from: 'Tema, Accra', to: 'Kasoa, Central Region', fare: 45.00, date: '2024-05-09', driver: 'Samuel Agyeman', rating: 4 },
-        { id: 3, from: 'Kumasi', to: 'Ejisu, Ashanti', fare: 35.75, date: '2024-05-08', driver: 'Kwame Boateng', rating: 5 }
+        { id: 1, from: 'Osu, Accra', to: 'Airport, Accra', fare: 25.50, date: '2026-08-03', driver: 'John Mensah', rating: 5 },
+        { id: 2, from: 'Tema, Accra', to: 'Kasoa, Central Region', fare: 45.00, date: '2026-08-12', driver: 'Samuel Agyeman', rating: 4 },
+        { id: 3, from: 'Kumasi', to: 'Ejisu, Ashanti', fare: 35.75, date: '2026-08-20', driver: 'Kwame Boateng', rating: 5 }
     ]
 };
 
@@ -749,9 +756,250 @@ function populateRideHistory() {
     });
 }
 
-document.getElementById('editProfileBtn').addEventListener('click', () => {
-    showNotification('Profile editing coming soon!', 'info');
+document.querySelectorAll('.profile-tab-btn').forEach(button => {
+    button.addEventListener('click', () => {
+        const tab = button.dataset.tab;
+        document.querySelectorAll('.profile-tab-btn').forEach(btn => btn.classList.toggle('active', btn === button));
+        document.querySelectorAll('.profile-tab-content').forEach(panel => {
+            panel.classList.toggle('active', panel.id === `${tab}-tab`);
+        });
+    });
 });
+
+function renderSavedPlaces() {
+    const list = document.getElementById('addressesList');
+    if (!list) return;
+
+    list.innerHTML = '';
+
+    appState.savedPlaces.forEach(place => {
+        const item = document.createElement('div');
+        item.className = 'address-item';
+
+        const iconMap = {
+            home: 'fa-home',
+            work: 'fa-briefcase',
+            other: 'fa-map-pin'
+        };
+
+        const labelMap = {
+            home: 'Home',
+            work: 'Work',
+            other: place.name || 'Other Place'
+        };
+
+        item.innerHTML = `
+            <div class="address-type">
+                <i class="fas ${iconMap[place.label] || 'fa-map-pin'}"></i>
+                <span>${labelMap[place.label] || place.name}</span>
+            </div>
+            <p class="address-text">${place.address}</p>
+            <div class="address-actions">
+                <button class="btn-icon" data-action="edit" data-id="${place.id}" title="Edit">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn-icon btn-danger" data-action="delete" data-id="${place.id}" title="Delete">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        `;
+
+        list.appendChild(item);
+    });
+
+    list.querySelectorAll('[data-action="delete"]').forEach(button => {
+        button.addEventListener('click', () => {
+            const id = Number(button.dataset.id);
+            appState.savedPlaces = appState.savedPlaces.filter(place => place.id !== id);
+            renderSavedPlaces();
+            showNotification('Saved place deleted', 'info');
+        });
+    });
+
+    list.querySelectorAll('[data-action="edit"]').forEach(button => {
+        button.addEventListener('click', () => {
+            const id = Number(button.dataset.id);
+            const place = appState.savedPlaces.find(item => item.id === id);
+            if (!place) return;
+
+            const form = document.getElementById('addAddressForm');
+            const label = document.getElementById('addressLabel');
+            const name = document.getElementById('addressName');
+            const text = document.getElementById('addressText');
+
+            label.value = place.label;
+            name.value = place.name || '';
+            text.value = place.address;
+            form.classList.remove('hidden');
+            form.dataset.editId = String(place.id);
+            showNotification('Edit your saved place and save to update it', 'info');
+        });
+    });
+}
+
+const addAddressBtn = document.getElementById('addAddressBtn');
+const addAddressForm = document.getElementById('addAddressForm');
+const cancelAddressBtn = document.getElementById('cancelAddressBtn');
+
+if (addAddressBtn) {
+    addAddressBtn.addEventListener('click', () => {
+        addAddressForm.classList.remove('hidden');
+        addAddressForm.dataset.editId = '';
+        addAddressForm.reset();
+    });
+}
+
+if (cancelAddressBtn) {
+    cancelAddressBtn.addEventListener('click', () => {
+        addAddressForm.reset();
+        addAddressForm.classList.add('hidden');
+        delete addAddressForm.dataset.editId;
+    });
+}
+
+if (addAddressForm) {
+    addAddressForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        const label = document.getElementById('addressLabel').value;
+        const customName = document.getElementById('addressName').value.trim();
+        const address = document.getElementById('addressText').value.trim();
+
+        if (!label || !address) {
+            showNotification('Please select a label and enter a full address', 'error');
+            return;
+        }
+
+        const editedId = addAddressForm.dataset.editId ? Number(addAddressForm.dataset.editId) : null;
+
+        if (editedId) {
+            const place = appState.savedPlaces.find(item => item.id === editedId);
+            if (place) {
+                place.label = label;
+                place.name = label === 'other' ? (customName || 'Other Place') : label === 'home' ? 'Home' : 'Work';
+                place.address = address;
+            }
+            showNotification('Saved place updated', 'success');
+        } else {
+            const newPlace = {
+                id: Date.now(),
+                label,
+                name: label === 'other' ? (customName || 'Other Place') : label === 'home' ? 'Home' : 'Work',
+                address
+            };
+            appState.savedPlaces.push(newPlace);
+            showNotification('New saved place added', 'success');
+        }
+
+        addAddressForm.reset();
+        addAddressForm.classList.add('hidden');
+        delete addAddressForm.dataset.editId;
+        renderSavedPlaces();
+    });
+}
+
+function renderCalendar() {
+    const calendarMonths = document.getElementById('calendarMonth');
+    const calendarDays = document.getElementById('calendarDays');
+    if (!calendarMonths || !calendarDays) return;
+
+    const monthDate = new Date(appState.calendarYear, appState.calendarMonth, 1);
+    calendarMonths.textContent = monthDate.toLocaleString('en-US', {
+        month: 'long',
+        year: 'numeric'
+    });
+
+    const firstDay = new Date(appState.calendarYear, appState.calendarMonth, 1);
+    const startDay = firstDay.getDay();
+    const daysInMonth = new Date(appState.calendarYear, appState.calendarMonth + 1, 0).getDate();
+    const daysInPrevMonth = new Date(appState.calendarYear, appState.calendarMonth, 0).getDate();
+    const rideDates = new Set(mockDatabase.rides
+        .map(ride => ride.date)
+        .filter(Boolean)
+        .map(date => new Date(date).getDate())
+    );
+
+    calendarDays.innerHTML = '';
+
+    for (let i = 0; i < 42; i++) {
+        const day = i - startDay + 1;
+        const cell = document.createElement('div');
+        cell.className = 'calendar-day';
+
+        if (day <= 0) {
+            cell.textContent = daysInPrevMonth + day;
+            cell.classList.add('other-month');
+        } else if (day > daysInMonth) {
+            cell.textContent = day - daysInMonth;
+            cell.classList.add('other-month');
+        } else {
+            cell.textContent = day;
+            if (rideDates.has(day)) {
+                cell.classList.add('has-ride');
+            }
+
+            const today = new Date();
+            if (today.getFullYear() === appState.calendarYear &&
+                today.getMonth() === appState.calendarMonth &&
+                today.getDate() === day) {
+                cell.classList.add('today');
+            }
+        }
+
+        calendarDays.appendChild(cell);
+    }
+}
+
+const viewCalendarBtn = document.getElementById('viewCalendarBtn');
+const activityCalendar = document.getElementById('activityCalendar');
+const prevMonthBtn = document.getElementById('prevMonth');
+const nextMonthBtn = document.getElementById('nextMonth');
+
+if (viewCalendarBtn) {
+    viewCalendarBtn.addEventListener('click', () => {
+        activityCalendar.style.display = activityCalendar.style.display === 'none' ? 'block' : 'none';
+        renderCalendar();
+    });
+}
+
+if (prevMonthBtn) {
+    prevMonthBtn.addEventListener('click', () => {
+        appState.calendarMonth -= 1;
+        if (appState.calendarMonth < 0) {
+            appState.calendarMonth = 11;
+            appState.calendarYear -= 1;
+        }
+        renderCalendar();
+    });
+}
+
+if (nextMonthBtn) {
+    nextMonthBtn.addEventListener('click', () => {
+        appState.calendarMonth += 1;
+        if (appState.calendarMonth > 11) {
+            appState.calendarMonth = 0;
+            appState.calendarYear += 1;
+        }
+        renderCalendar();
+    });
+}
+
+function togglePasswordForm(show) {
+    const form = document.getElementById('changePasswordForm');
+    if (!form) return;
+    form.style.display = show ? 'block' : 'none';
+}
+
+const changePasswordBtn = document.getElementById('changePasswordBtn');
+const cancelPasswordBtn = document.getElementById('cancelPasswordBtn');
+
+if (changePasswordBtn) {
+    changePasswordBtn.addEventListener('click', () => togglePasswordForm(true));
+}
+
+if (cancelPasswordBtn) {
+    cancelPasswordBtn.addEventListener('click', () => togglePasswordForm(false));
+}
 
 const twoFactorToggle = document.getElementById('twoFactorToggle');
 
@@ -831,12 +1079,19 @@ document.getElementById('paymentHistoryBtn').addEventListener('click', () => {
     showNotification('Payment history coming soon!', 'info');
 });
 
-document.getElementById('deleteAccountBtn').addEventListener('click', () => {
-    if (confirm('Are you sure you want to delete your account? This cannot be undone.')) {
-        logout();
-        showNotification('Account deleted', 'success');
-    }
-});
+const deleteAccountBtn = document.getElementById('deleteAccountBtn');
+
+if (deleteAccountBtn) {
+    deleteAccountBtn.addEventListener('click', () => {
+        if (confirm('Are you sure you want to delete your account? This cannot be undone.')) {
+            const remainingUsers = mockDatabase.users.filter(user => user.email !== appState.user?.email);
+            mockDatabase.users = remainingUsers;
+            logout();
+            showNotification('Account deleted', 'success');
+            showPage('homePage');
+        }
+    });
+}
 
 // ============================================
 // NOTIFICATION SYSTEM
