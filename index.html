@@ -287,15 +287,15 @@
 
                     <div class="ride-type-card">
                         <div class="ride-type-image economy-image">
-                            <i class="fas fa-car"></i>
+                            <img src="ChatGPT Image Sep 1, 2026, 02_40_01 AM.png" alt="Economy ride">
                         </div>
 
                         <div class="ride-type-content">
                             <h3>Economy</h3>
-                            <p>Affordable everyday rides.</p>
+                            <p>Affordable everyday rides for city travel.</p>
 
                             <div class="ride-price">
-                                From <strong>GH₵25</strong>
+                                Dynamic fare based on distance
                             </div>
                         </div>
                     </div>
@@ -305,15 +305,15 @@
                         <div class="popular-tag">POPULAR</div>
 
                         <div class="ride-type-image comfort-image">
-                            <i class="fas fa-car-side"></i>
+                            <img src="ChatGPT Image Sep 1, 2026, 02_35_20 AM.png" alt="Comfort ride">
                         </div>
 
                         <div class="ride-type-content">
                             <h3>Comfort</h3>
-                            <p>Extra comfort for your journey.</p>
+                            <p>Comfortable cars for longer or smoother trips.</p>
 
                             <div class="ride-price">
-                                From <strong>GH₵40</strong>
+                                Dynamic fare based on distance
                             </div>
                         </div>
                     </div>
@@ -321,15 +321,15 @@
 
                     <div class="ride-type-card">
                         <div class="ride-type-image premium-image">
-                            <i class="fas fa-gem"></i>
+                            <img src="2018-Honda-Civic-Header-Hero.avif" alt="Premium ride">
                         </div>
 
                         <div class="ride-type-content">
                             <h3>Premium</h3>
-                            <p>Premium vehicles and extra comfort.</p>
+                            <p>Premium vehicles and elevated travel comfort.</p>
 
                             <div class="ride-price">
-                                From <strong>GH₵60</strong>
+                                Dynamic fare based on distance
                             </div>
                         </div>
                     </div>
@@ -759,15 +759,15 @@
 
                                 <select id="rideType" required>
                                     <option value="economy">
-                                        Economy - GH₵15 base fare
+                                        Economy
                                     </option>
 
                                     <option value="comfort">
-                                        Comfort - GH₵28 base fare
+                                        Comfort
                                     </option>
 
                                     <option value="premium">
-                                        Premium - GH₵32 base fare
+                                        Premium
                                     </option>
                                 </select>
 
@@ -793,6 +793,11 @@
 
                         </div>
 
+                        <div class="fare-estimate-card">
+                            <div class="fare-estimate-label">Estimated Fare</div>
+                            <div id="fareEstimateValue">GH₵0.00</div>
+                            <p id="fareDistanceText">Pricing changes based on distance, pickup, and drop-off locations.</p>
+                        </div>
 
                         <button type="submit" class="btn btn-primary btn-full">
                             <i class="fas fa-magnifying-glass"></i>
@@ -1287,13 +1292,22 @@
                 <!-- Profile Header -->
                 <div class="profile-header">
 
-                    <div class="profile-avatar-large">
-                        <i class="fas fa-user"></i>
+                    <div class="profile-avatar-upload">
+                        <div class="profile-avatar-large" id="profileAvatarPreview">
+                            <i class="fas fa-user"></i>
+                        </div>
+
+                        <label class="upload-avatar-btn" for="profilePhotoInput">
+                            <i class="fas fa-camera"></i>
+                            Upload Photo
+                        </label>
+                        <input type="file" id="profilePhotoInput" accept="image/*" hidden>
                     </div>
 
                     <div class="profile-header-info">
                         <h2 id="profileName">John Doe</h2>
                         <p id="profileEmail">john@example.com</p>
+                        <p id="profilePhone">0559999999</p>
                         <div class="profile-badges">
                             <span class="badge badge-primary">
                                 <i class="fas fa-star"></i> 4.8

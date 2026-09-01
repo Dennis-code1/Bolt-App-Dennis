@@ -30,6 +30,96 @@ const mapState = {
 
 const GHANA_CENTER = [7.9465, -1.0232];
 
+const ridePricing = {
+    economy: { baseFare: 12, perKm: 2.3, minimum: 18 },
+    comfort: { baseFare: 18, perKm: 3.4, minimum: 28 },
+    premium: { baseFare: 26, perKm: 4.9, minimum: 42 }
+};
+
+function formatGhanaCurrency(value) {
+    return `GH₵${Number(value).toFixed(2)}`;
+}
+
+function getRidePricePlan(type) {
+    return ridePricing[type] || ridePricing.economy;
+}
+
+function calculateDistanceKm(start, end) {
+    const toRadians = (value) => (value * Math.PI) / 180;
+    const earthRadius = 6371;
+    const dLat = toRadians(end.lat - start.lat);
+    const dLon = toRadians(end.lon - start.lon);
+    const lat1 = toRadians(start.lat);
+    const lat2 = toRadians(end.lat);
+
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.sin(dLon / 2) * Math.sin(dLon / 2) * Math.cos(lat1) * Math.cos(lat2);
+
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return earthRadius * c;
+}
+
+function getDynamicFare(type, distanceKm) {
+    const plan = getRidePricePlan(type);
+    return Math.max(plan.minimum, plan.baseFare + distanceKm * plan.perKm);
+}
+
+async function estimateRideFareFromRoute(type, pickupAddress, destinationAddress) {
+    const pickupValue = (pickupAddress || '').trim();
+    const dropoffValue = (destinationAddress || '').trim();
+
+    if (!pickupValue || !dropoffValue) {
+        return null;
+    }
+
+    const pickupCoords = await geocodeLocation(pickupValue);
+    const destinationCoords = await geocodeLocation(dropoffValue);
+
+    if (!pickupCoords || !destinationCoords) {
+        return null;
+    }
+
+    const distanceKm = calculateDistanceKm(pickupCoords, destinationCoords);
+    const fare = getDynamicFare(type, distanceKm);
+
+    return {
+        distanceKm,
+        fare,
+        routeText: `${distanceKm.toFixed(1)} km away`
+    };
+}
+
+async function updateFareEstimate() {
+    const fareEstimateValue = document.getElementById('fareEstimateValue');
+    const fareDistanceText = document.getElementById('fareDistanceText');
+    const rideType = document.getElementById('rideType')?.value || 'economy';
+    const pickupAddress = document.getElementById('pickupLocation')?.value || '';
+    const destinationAddress = document.getElementById('dropoffLocation')?.value || '';
+
+    if (!fareEstimateValue || !fareDistanceText) return;
+
+    if (!pickupAddress || !destinationAddress) {
+        fareEstimateValue.textContent = 'GH₵0.00';
+        fareDistanceText.textContent = 'Pricing changes based on distance, pickup, and drop-off locations.';
+        return;
+    }
+
+    try {
+        const quote = await estimateRideFareFromRoute(rideType, pickupAddress, destinationAddress);
+        if (!quote) {
+            fareEstimateValue.textContent = 'Could not estimate';
+            fareDistanceText.textContent = 'Please enter a more specific pickup and destination.';
+            return;
+        }
+
+        fareEstimateValue.textContent = formatGhanaCurrency(quote.fare);
+        fareDistanceText.textContent = `${quote.routeText} • ${rideType.charAt(0).toUpperCase() + rideType.slice(1)} ride`;
+    } catch (error) {
+        fareEstimateValue.textContent = 'Could not estimate';
+        fareDistanceText.textContent = 'Please check your pickup and destination details.';
+    }
+}
+
 // Mock Database for Demo
 const mockDatabase = {
     users: [
@@ -422,19 +512,26 @@ document.getElementById('rideForm').addEventListener('submit', async (e) => {
     const dropoffLocation = document.getElementById('dropoffLocation').value;
     const rideType = document.getElementById('rideType').value;
     const passengers = document.getElementById('passengers').value;
-    
-    // Create ride object
-    appState.currentRide = {
-        id: Math.random(),
-        pickup: pickupLocation,
-        dropoff: dropoffLocation,
-        type: rideType,
-        passengers: passengers,
-        status: 'searching',
-        createdAt: new Date()
-    };
 
     try {
+        const routeQuote = await estimateRideFareFromRoute(rideType, pickupLocation, dropoffLocation);
+        if (!routeQuote) {
+            showNotification('Please enter valid pickup and drop-off locations.', 'error');
+            return;
+        }
+
+        appState.currentRide = {
+            id: Math.random(),
+            pickup: pickupLocation,
+            dropoff: dropoffLocation,
+            type: rideType,
+            passengers: passengers,
+            distanceKm: routeQuote.distanceKm,
+            fare: routeQuote.fare,
+            status: 'searching',
+            createdAt: new Date()
+        };
+
         const routeReady = await updateRideMapFromAddresses(pickupLocation, dropoffLocation);
         if (!routeReady) {
             return;
@@ -445,7 +542,6 @@ document.getElementById('rideForm').addEventListener('submit', async (e) => {
         return;
     }
     
-    // Populate available drivers
     populateAvailableDrivers();
     showNotification('Finding drivers for you...', 'info');
 });
@@ -453,8 +549,10 @@ document.getElementById('rideForm').addEventListener('submit', async (e) => {
 function populateAvailableDrivers() {
     const driversList = document.getElementById('driversList');
     driversList.innerHTML = '';
-    
+    const routeDistance = appState.currentRide?.distanceKm || 12;
+
     mockDatabase.drivers.forEach(driver => {
+        const driverRate = Math.max(18, appState.currentRide ? getDynamicFare(appState.currentRide.type, routeDistance + driver.id * 0.8) : 20);
         const driverItem = document.createElement('div');
         driverItem.className = 'driver-item';
         driverItem.innerHTML = `
@@ -463,45 +561,41 @@ function populateAvailableDrivers() {
                     <div class="driver-item-name">${driver.name}</div>
                     <div class="driver-item-rating">${driver.rating} ⭐</div>
                 </div>
-                <div class="driver-item-price">${driver.price}</div>
+                <div class="driver-item-price">${formatGhanaCurrency(driverRate)}</div>
             </div>
             <div class="driver-item-car">${driver.car}</div>
             <div class="driver-item-distance">${driver.distance}</div>
         `;
         
         driverItem.addEventListener('click', () => {
-            selectDriver(driver);
+            selectDriver(driver, driverRate);
         });
         
         driversList.appendChild(driverItem);
     });
 }
 
-function selectDriver(driver) {
+function selectDriver(driver, selectedFare) {
     appState.currentRide.driver = driver;
     appState.currentRide.status = 'confirmed';
+    appState.currentRide.fare = selectedFare || appState.currentRide.fare || 0;
     
-    // Update active ride page
     document.getElementById('driverName').textContent = driver.name;
     document.getElementById('driverCar').textContent = driver.car;
     document.getElementById('driverRatingActive').textContent = `⭐ ${driver.rating} (250 rides)`;
     document.getElementById('activePickup').textContent = appState.currentRide.pickup;
     document.getElementById('activeDropoff').textContent = appState.currentRide.dropoff;
     
-    // Parse price and set fare
-    const priceMatch = driver.price.match(/[\d.]+/);
-    if (priceMatch) {
-        const fare = parseFloat(priceMatch[0]);
-        document.getElementById('estimatedFare').textContent = `GHS ${fare.toFixed(2)}`;
-        document.getElementById('baseFare').textContent = 'GHS 5.00';
-        document.getElementById('distanceFare').textContent = `GHS ${(fare - 5).toFixed(2)}`;
-        document.getElementById('totalAmount').textContent = `GHS ${fare.toFixed(2)}`;
-    }
+    const fareValue = Number(appState.currentRide.fare || 0);
+    const baseFare = Math.max(5, fareValue * 0.2);
+    const distanceFare = fareValue - baseFare;
+    document.getElementById('estimatedFare').textContent = formatGhanaCurrency(fareValue);
+    document.getElementById('baseFare').textContent = formatGhanaCurrency(baseFare);
+    document.getElementById('distanceFare').textContent = formatGhanaCurrency(distanceFare);
+    document.getElementById('totalAmount').textContent = formatGhanaCurrency(fareValue);
     
     showNotification(`Driver ${driver.name} accepted your ride!`, 'success');
     showPage('activeRidePage');
-    
-    // Simulate driver arrival
     startRideSimulation();
 }
 
@@ -723,10 +817,20 @@ function loadProfileData() {
     if (!appState.user) return;
     
     const user = appState.user;
+
+    const profileAvatarPreview = document.getElementById('profileAvatarPreview');
+    if (profileAvatarPreview) {
+        if (user.avatar) {
+            profileAvatarPreview.innerHTML = `<img src="${user.avatar}" alt="Profile photo">`;
+        } else {
+            profileAvatarPreview.innerHTML = '<i class="fas fa-user"></i>';
+        }
+    }
     
     document.getElementById('profileName').textContent = user.name;
     document.getElementById('profileEmail').textContent = user.email;
-    document.getElementById('profilePhone').textContent = user.phone;
+    const profilePhone = document.getElementById('profilePhone');
+    if (profilePhone) profilePhone.textContent = user.phone;
 
     document.getElementById('displayName').textContent = user.name || 'Not provided';
     document.getElementById('displayEmail').textContent = user.email || 'Not provided';
@@ -1119,6 +1223,44 @@ if (personalEditForm) {
         showNotification('Personal information saved successfully.', 'success');
     });
 }
+
+const profilePhotoInput = document.getElementById('profilePhotoInput');
+if (profilePhotoInput) {
+    profilePhotoInput.addEventListener('change', (event) => {
+        const file = event.target.files && event.target.files[0];
+        if (!file || !appState.user) {
+            showNotification('Please log in before uploading a profile picture.', 'info');
+            return;
+        }
+
+        if (!file.type.startsWith('image/')) {
+            showNotification('Please upload a valid image file.', 'error');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (readEvent) => {
+            appState.user.avatar = readEvent.target.result;
+            const preview = document.getElementById('profileAvatarPreview');
+            if (preview) {
+                preview.innerHTML = `<img src="${readEvent.target.result}" alt="Profile photo">`;
+            }
+            showNotification('Profile photo updated successfully.', 'success');
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
+const rideTypeSelect = document.getElementById('rideType');
+const pickupLocationInput = document.getElementById('pickupLocation');
+const dropoffLocationInput = document.getElementById('dropoffLocation');
+
+[rideTypeSelect, pickupLocationInput, dropoffLocationInput].forEach(element => {
+    if (element) {
+        element.addEventListener('input', updateFareEstimate);
+        element.addEventListener('change', updateFareEstimate);
+    }
+});
 
 const paymentHistoryBtn = document.getElementById('paymentHistoryBtn');
 if (paymentHistoryBtn) {
