@@ -1283,6 +1283,110 @@ if (deleteAccountBtn) {
     });
 }
 
+const cityInfo = {
+    accra: {
+        title: 'Accra',
+        subtitle: 'The energetic heart of Ghana, full of life, music, and coastal charm.',
+        text: 'Accra is Ghana’s vibrant capital, where busy markets, welcoming people, and creative energy meet the Atlantic coastline. It is the perfect destination for work, celebration, and discovery, with a rhythm that never slows down.',
+        highlights: ['Live music and nightlife', 'Beautiful coastal views', 'Busy markets and local culture'],
+        image: 'Acca.jpg'
+    },
+    kumasi: {
+        title: 'Kumasi',
+        subtitle: 'A cultural treasure known for tradition, craft, and warm hospitality.',
+        text: 'Kumasi is celebrated as the cultural capital of Ghana. From its rich heritage and traditional markets to its strong community spirit, the city offers a truly authentic experience rooted in art, storytelling, and friendship.',
+        highlights: ['Rich cultural heritage', 'Traditional craft markets', 'Friendly people and lively streets'],
+        image: 'view-from-kejetia-market-kumasi-1.jpg'
+    },
+    tema: {
+        title: 'Tema',
+        subtitle: 'A fast-growing port city that connects movement, trade, and opportunity.',
+        text: 'Tema is known for its strategic importance and modern progress. With its port, busy commercial activity, and easy access to Accra, it reflects the strength and momentum of Ghana’s growing urban life.',
+        highlights: ['Major port city', 'Strong business energy', 'Easy access to the capital'],
+        image: '0100r12000kyudifu10B8_W_480_0_Q50.webp'
+    },
+    'cape-coast': {
+        title: 'Cape Coast',
+        subtitle: 'A historic coastal city with beauty, heritage, and peaceful ocean views.',
+        text: 'Cape Coast is one of Ghana’s most memorable destinations, where old forts, sea breezes, and history come together. It offers visitors a calm yet inspiring atmosphere shaped by culture, memory, and natural beauty.',
+        highlights: ['Historic forts and landmarks', 'Beautiful shoreline', 'A calm cultural atmosphere'],
+        image: 'caption.jpg'
+    },
+    takoradi: {
+        title: 'Takoradi',
+        subtitle: 'A lively sea city filled with energy, trade, and breathtaking coastline.',
+        text: 'Takoradi is a dynamic city with a rich maritime identity and scenic coastal atmosphere. It blends urban energy with open spaces and ocean views, making it one of Ghana’s most beautiful and welcoming ports.',
+        highlights: ['Seaside beauty', 'Commercial activity', 'Warm local communities'],
+        image: 'planter-s-lodge.jpg'
+    },
+    kakum: {
+        title: 'Kakum',
+        subtitle: 'A gateway to nature, rainforest adventure, and fresh green beauty.',
+        text: 'Kakum is known for its rainforest beauty and unforgettable eco-adventures. It is the ideal place for visitors who want to experience Ghana’s natural environment through canopy walkways, scenic trails, and peaceful green landscapes.',
+        highlights: ['Rainforest adventure', 'Nature and canopy walks', 'Eco-tourism and scenic views'],
+        image: 'unnamed.webp'
+    },
+    sunyani: {
+        title: 'Sunyani',
+        subtitle: 'A delightful city of friendliness, calm surroundings, and inner-city warmth.',
+        text: 'Sunyani offers a refreshing and welcoming experience in the heart of Ghana. Known for its relaxed pace and community spirit, it is a place where visitors feel at ease while enjoying a simpler and more peaceful side of the country.',
+        highlights: ['Friendly communities', 'A calm city feel', 'A welcoming atmosphere'],
+        image: 'images.jfif'
+    },
+    elmina: {
+        title: 'Elmina',
+        subtitle: 'A historic coastal town where heritage and beauty live together.',
+        text: 'Elmina is one of Ghana’s most treasured historical towns, known for its castle and coastal charm. It offers a rich sense of the past while still feeling vibrant, scenic, and deeply connected to the sea.',
+        highlights: ['Historic castle heritage', 'Scenic sea views', 'Quiet coastal beauty'],
+        image: '68.jpg'
+    }
+};
+
+function openCityModal(cityKey) {
+    const city = cityInfo[cityKey];
+    const modal = document.getElementById('cityModal');
+    if (!city || !modal) return;
+
+    const title = document.getElementById('cityModalTitle');
+    const subtitle = document.getElementById('cityModalSubtitle');
+    const text = document.getElementById('cityModalText');
+    const image = document.getElementById('cityModalImage');
+    const highlights = document.getElementById('cityModalHighlights');
+
+    title.textContent = city.title;
+    subtitle.textContent = city.subtitle;
+    text.innerHTML = `<p>${city.text}</p>`;
+    image.src = city.image;
+    image.alt = `${city.title} city view`;
+    highlights.innerHTML = city.highlights.map(item => `<li>${item}</li>`).join('');
+
+    modal.classList.remove('hidden');
+    modal.setAttribute('aria-hidden', 'false');
+}
+
+function closeCityModal() {
+    const modal = document.getElementById('cityModal');
+    if (!modal) return;
+    modal.classList.add('hidden');
+    modal.setAttribute('aria-hidden', 'true');
+}
+
+document.querySelectorAll('.city-card').forEach((card) => {
+    card.addEventListener('click', () => openCityModal(card.dataset.city));
+});
+
+document.querySelectorAll('[data-close-city-modal="true"]').forEach((element) => {
+    element.addEventListener('click', closeCityModal);
+});
+
+document.querySelector('.city-modal-close')?.addEventListener('click', closeCityModal);
+
+document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+        closeCityModal();
+    }
+});
+
 // ============================================
 // NOTIFICATION SYSTEM
 // ============================================
