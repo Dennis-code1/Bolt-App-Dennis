@@ -95,12 +95,14 @@ async function updateFareEstimate() {
     const rideType = document.getElementById('rideType')?.value || 'economy';
     const pickupAddress = document.getElementById('pickupLocation')?.value || '';
     const destinationAddress = document.getElementById('dropoffLocation')?.value || '';
+    const navigateBtn = document.getElementById('navigateRouteBtn');
 
     if (!fareEstimateValue || !fareDistanceText) return;
 
     if (!pickupAddress || !destinationAddress) {
         fareEstimateValue.textContent = 'GH₵0.00';
         fareDistanceText.textContent = 'Pricing changes based on distance, pickup, and drop-off locations.';
+        if (navigateBtn) navigateBtn.style.display = 'none';
         return;
     }
 
@@ -109,14 +111,25 @@ async function updateFareEstimate() {
         if (!quote) {
             fareEstimateValue.textContent = 'Could not estimate';
             fareDistanceText.textContent = 'Please enter a more specific pickup and destination.';
+            if (navigateBtn) navigateBtn.style.display = 'none';
             return;
         }
 
         fareEstimateValue.textContent = formatGhanaCurrency(quote.fare);
         fareDistanceText.textContent = `${quote.routeText} • ${rideType.charAt(0).toUpperCase() + rideType.slice(1)} ride`;
+
+        const routeReady = await updateRideMapFromAddresses(pickupAddress, destinationAddress);
+        if (routeReady && navigateBtn) {
+            navigateBtn.style.display = 'block';
+            navigateBtn.dataset.origin = pickupAddress;
+            navigateBtn.dataset.destination = destinationAddress;
+        } else if (navigateBtn) {
+            navigateBtn.style.display = 'none';
+        }
     } catch (error) {
         fareEstimateValue.textContent = 'Could not estimate';
         fareDistanceText.textContent = 'Please check your pickup and destination details.';
+        if (navigateBtn) navigateBtn.style.display = 'none';
     }
 }
 
@@ -143,17 +156,108 @@ const mockDatabase = {
 // ============================================
 
 function showPage(pageId) {
-    // Hide all pages
-    document.querySelectorAll('.page').forEach(page => {
-        page.classList.remove('active');
+    const page = document.getElementById(pageId);
+    if (!page) return;
+
+    document.querySelectorAll('.page').forEach(pageEl => {
+        pageEl.classList.remove('active');
     });
-    
-    // Show selected page
-    document.getElementById(pageId).classList.add('active');
-    
-    // Scroll to top
+
+    page.classList.add('active');
     window.scrollTo(0, 0);
     resizeMaps();
+}
+
+function populateQuickBookingFromInputs() {
+    const pickup = document.getElementById('quickPickup')?.value?.trim() || '';
+    const dropoff = document.getElementById('quickDestination')?.value?.trim() || '';
+
+    if (!pickup || !dropoff) {
+        showNotification('Please enter both a pickup and destination to continue.', 'error');
+        return false;
+    }
+
+    const pickupInput = document.getElementById('pickupLocation');
+    const dropoffInput = document.getElementById('dropoffLocation');
+    const rideTypeInput = document.getElementById('rideType');
+
+    if (pickupInput) pickupInput.value = pickup;
+    if (dropoffInput) dropoffInput.value = dropoff;
+    if (rideTypeInput) rideTypeInput.value = 'economy';
+
+    showPage('ridePage');
+    return launchRideBookingFlow();
+}
+
+async function launchRideBookingFlow() {
+    if (!appState.isLoggedIn) {
+        showNotification('Please login first', 'error');
+        return false;
+    }
+
+    const pickupLocation = document.getElementById('pickupLocation')?.value?.trim() || '';
+    const dropoffLocation = document.getElementById('dropoffLocation')?.value?.trim() || '';
+    const rideType = document.getElementById('rideType')?.value || 'economy';
+    const passengers = document.getElementById('passengers')?.value || '1';
+
+    if (!pickupLocation || !dropoffLocation) {
+        showNotification('Please enter valid pickup and drop-off locations.', 'error');
+        return false;
+    }
+
+    try {
+        const routeQuote = await estimateRideFareFromRoute(rideType, pickupLocation, dropoffLocation);
+        if (!routeQuote) {
+            showNotification('Please enter valid pickup and drop-off locations.', 'error');
+            return false;
+        }
+
+        appState.currentRide = {
+            id: Math.random(),
+            pickup: pickupLocation,
+            dropoff: dropoffLocation,
+            type: rideType,
+            passengers,
+            distanceKm: routeQuote.distanceKm,
+            fare: routeQuote.fare,
+            status: 'searching',
+            createdAt: new Date()
+        };
+
+        const routeReady = await updateRideMapFromAddresses(pickupLocation, dropoffLocation);
+        if (!routeReady) {
+            return false;
+        }
+    } catch (error) {
+        console.error('Map geocoding failed:', error);
+        showNotification('Map lookup failed. Please enter a more specific address.', 'error');
+        return false;
+    }
+
+    populateAvailableDrivers();
+    showNotification('Finding drivers for you...', 'info');
+    return true;
+}
+
+function preparePaymentFromCurrentRide() {
+    if (!appState.currentRide) {
+        showNotification('There is no active ride to pay for yet.', 'error');
+        return;
+    }
+
+    const totalAmount = Number(appState.currentRide.fare || 0);
+    const baseAmount = totalAmount * 0.25;
+    const distanceAmount = totalAmount - baseAmount;
+
+    const baseFareEl = document.getElementById('baseFare');
+    const distanceFareEl = document.getElementById('distanceFare');
+    const totalAmountEl = document.getElementById('totalAmount');
+
+    if (baseFareEl) baseFareEl.textContent = formatGhanaCurrency(baseAmount);
+    if (distanceFareEl) distanceFareEl.textContent = formatGhanaCurrency(distanceAmount);
+    if (totalAmountEl) totalAmountEl.textContent = formatGhanaCurrency(totalAmount);
+
+    showPage('paymentPage');
 }
 
 function resizeMaps() {
@@ -194,6 +298,54 @@ function initializeMap(containerId, focusPoint = GHANA_CENTER) {
     return map;
 }
 
+function getFallbackLocationCoords(query) {
+    const normalized = String(query || '').trim().toLowerCase();
+    if (!normalized) return null;
+
+    const cityCenters = {
+        accra: { lat: 5.6037, lon: -0.1870, displayName: 'Accra, Greater Accra, Ghana' },
+        osu: { lat: 5.5573, lon: -0.1860, displayName: 'Osu, Accra, Ghana' },
+        'kotoka airport': { lat: 5.6044, lon: -0.1668, displayName: 'Kotoka International Airport, Accra, Ghana' },
+        airport: { lat: 5.6044, lon: -0.1668, displayName: 'Kotoka International Airport, Accra, Ghana' },
+        tema: { lat: 5.6698, lon: -0.0164, displayName: 'Tema, Greater Accra, Ghana' },
+        kasoa: { lat: 5.5344, lon: -0.4270, displayName: 'Kasoa, Central Region, Ghana' },
+        kumasi: { lat: 6.6885, lon: -1.6232, displayName: 'Kumasi, Ashanti, Ghana' },
+        ejisu: { lat: 6.7145, lon: -1.3786, displayName: 'Ejisu, Ashanti, Ghana' },
+        cape: { lat: 5.1053, lon: -1.2466, displayName: 'Cape Coast, Central Region, Ghana' },
+        'cape coast': { lat: 5.1053, lon: -1.2466, displayName: 'Cape Coast, Central Region, Ghana' },
+        takoradi: { lat: 4.8935, lon: -1.7600, displayName: 'Takoradi, Western Region, Ghana' },
+        sunyani: { lat: 7.3398, lon: -2.3260, displayName: 'Sunyani, Bono Region, Ghana' },
+        elmina: { lat: 5.0839, lon: -1.3500, displayName: 'Elmina, Central Region, Ghana' },
+        madina: { lat: 5.6778, lon: -0.1695, displayName: 'Madina, Accra, Ghana' },
+        legon: { lat: 5.6508, lon: -0.1849, displayName: 'Legon, Accra, Ghana' },
+        'accra mall': { lat: 5.6370, lon: -0.1535, displayName: 'Accra Mall, Accra, Ghana' },
+        mall: { lat: 5.6370, lon: -0.1535, displayName: 'Accra Mall, Accra, Ghana' },
+        'kaneshie': { lat: 5.5714, lon: -0.2124, displayName: 'Kaneshie, Accra, Ghana' },
+        'circle': { lat: 5.5607, lon: -0.2060, displayName: 'Circle, Accra, Ghana' }
+    };
+
+    for (const [key, value] of Object.entries(cityCenters)) {
+        if (normalized.includes(key)) {
+            return value;
+        }
+    }
+
+    const firstWord = normalized.split(/\s+/)[0];
+    if (firstWord && firstWord.length > 2) {
+        return {
+            lat: 5.6037 + ((firstWord.charCodeAt(0) % 10) * 0.05),
+            lon: -0.1870 + ((firstWord.charCodeAt(firstWord.length - 1) % 10) * 0.05),
+            displayName: `${query}, Ghana`
+        };
+    }
+
+    return {
+        lat: 5.6037,
+        lon: -0.1870,
+        displayName: `${query}, Ghana`
+    };
+}
+
 async function geocodeLocation(query) {
     const cleanedQuery = String(query || '').trim();
 
@@ -201,29 +353,33 @@ async function geocodeLocation(query) {
         return null;
     }
 
-    const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=${encodeURIComponent(cleanedQuery + ', Ghana')}`;
+    try {
+        const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=${encodeURIComponent(cleanedQuery + ', Ghana')}`;
 
-    const response = await fetch(url, {
-        headers: {
-            'Accept-Language': 'en'
+        const response = await fetch(url, {
+            headers: {
+                'Accept-Language': 'en'
+            }
+        });
+
+        if (!response.ok) {
+            return getFallbackLocationCoords(cleanedQuery);
         }
-    });
 
-    if (!response.ok) {
-        throw new Error('Location lookup failed');
+        const data = await response.json();
+
+        if (!data || data.length === 0) {
+            return getFallbackLocationCoords(cleanedQuery);
+        }
+
+        return {
+            lat: parseFloat(data[0].lat),
+            lon: parseFloat(data[0].lon),
+            displayName: data[0].display_name
+        };
+    } catch (error) {
+        return getFallbackLocationCoords(cleanedQuery);
     }
-
-    const data = await response.json();
-
-    if (!data || data.length === 0) {
-        return null;
-    }
-
-    return {
-        lat: parseFloat(data[0].lat),
-        lon: parseFloat(data[0].lon),
-        displayName: data[0].display_name
-    };
 }
 
 function drawRouteMap(pickupCoords, destinationCoords) {
@@ -320,6 +476,11 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
     logout();
 });
 
+document.getElementById('homeLogo')?.addEventListener('click', (event) => {
+    event.preventDefault();
+    showPage('homePage');
+});
+
 // Hero buttons
 document.getElementById('rideNowBtn').addEventListener('click', () => {
     if (appState.isLoggedIn) {
@@ -333,8 +494,46 @@ document.getElementById('becomeDriverBtn').addEventListener('click', () => {
     if (appState.isLoggedIn) {
         showPage('driverPage');
     } else {
-        document.getElementById('accountType').value = 'driver';
+        const accountType = document.getElementById('accountType');
+        if (accountType) {
+            accountType.value = 'driver';
+            updateAccountTypeFields();
+        }
         showPage('signupPage');
+    }
+});
+
+document.getElementById('quickBookBtn')?.addEventListener('click', () => {
+    const ok = populateQuickBookingFromInputs();
+    if (ok) {
+        updateFareEstimate();
+    }
+});
+
+document.getElementById('safetyBookBtn')?.addEventListener('click', () => {
+    if (appState.isLoggedIn) {
+        showPage('ridePage');
+    } else {
+        showPage('loginPage');
+        showNotification('Please login to book a safe ride.', 'info');
+    }
+});
+
+document.getElementById('footerHomeBtn')?.addEventListener('click', () => showPage('homePage'));
+document.getElementById('footerRideBtn')?.addEventListener('click', () => {
+    if (appState.isLoggedIn && appState.userType === 'rider') {
+        showPage('ridePage');
+    } else {
+        showPage('loginPage');
+        showNotification('Please login as a rider to continue.', 'info');
+    }
+});
+document.getElementById('footerDriveBtn')?.addEventListener('click', () => {
+    if (appState.isLoggedIn && appState.userType === 'driver') {
+        showPage('driverPage');
+    } else {
+        showPage('loginPage');
+        showNotification('Please login as a driver to continue.', 'info');
     }
 });
 
@@ -353,6 +552,27 @@ document.getElementById('switchToLogin').addEventListener('click', (e) => {
     showPage('loginPage');
 });
 
+document.getElementById('forgotPasswordLink')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    showPage('forgotPasswordPage');
+});
+
+document.getElementById('backToLoginFromForgot')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    showPage('loginPage');
+});
+
+document.getElementById('backToLoginFromReset')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    showPage('loginPage');
+});
+
+document.getElementById('accountType')?.addEventListener('change', updateAccountTypeFields);
+
+document.getElementById('signupPassword')?.addEventListener('input', (event) => {
+    updatePasswordStrengthUI(event.target.value);
+});
+
 // Login Form
 document.getElementById('loginForm').addEventListener('submit', (e) => {
     e.preventDefault();
@@ -360,8 +580,25 @@ document.getElementById('loginForm').addEventListener('submit', (e) => {
     const email = document.getElementById('loginEmail').value.trim();
     const password = document.getElementById('loginPassword').value;
     const loginCode = document.getElementById('loginCode').value.trim();
+    const emailInput = document.getElementById('loginEmail');
+    const passwordInput = document.getElementById('loginPassword');
+
+    clearValidationError(emailInput);
+    clearValidationError(passwordInput);
+
+    if (!isValidEmail(email)) {
+        showValidationError(emailInput, 'Please enter a valid email address.');
+        showNotification('Please enter a valid email.', 'error');
+        return;
+    }
+
+    if (!password || password.length < 6) {
+        showValidationError(passwordInput, 'Password must be at least 6 characters.');
+        showNotification('Password must be at least 6 characters.', 'error');
+        return;
+    }
     
-    const user = mockDatabase.users.find(u => u.email === email && u.password === password);
+    const user = mockDatabase.users.find(u => u.email.toLowerCase() === email.toLowerCase() && u.password === password);
     
     if (!user) {
         showNotification('Invalid email or password', 'error');
@@ -377,7 +614,7 @@ document.getElementById('loginForm').addEventListener('submit', (e) => {
         }
 
         if (!loginCode) {
-            showNotification(`Face lock is enabled. Use the 6-digit code: ${requiredCode}`, 'info');
+            showNotification(`Two-factor authentication is enabled. Use the 6-digit code: ${requiredCode}`, 'info');
             return;
         }
 
@@ -407,19 +644,73 @@ document.getElementById('loginForm').addEventListener('submit', (e) => {
 document.getElementById('signupForm').addEventListener('submit', (e) => {
     e.preventDefault();
     
-    const name = document.getElementById('signupName').value;
-    const email = document.getElementById('signupEmail').value;
-    const phone = document.getElementById('signupPhone').value;
-    const password = document.getElementById('signupPassword').value;
+    const nameInput = document.getElementById('signupName');
+    const emailInput = document.getElementById('signupEmail');
+    const phoneInput = document.getElementById('signupPhone');
+    const passwordInput = document.getElementById('signupPassword');
+    const confirmInput = document.getElementById('confirmPassword');
     const accountType = document.getElementById('accountType').value;
-    
-    // Check if email exists
-    if (mockDatabase.users.some(u => u.email === email)) {
+    const termsAccepted = document.getElementById('termsAccepted');
+
+    const name = nameInput.value.trim();
+    const email = emailInput.value.trim();
+    const phone = phoneInput.value.trim();
+    const password = passwordInput.value;
+    const confirmPassword = confirmInput.value;
+
+    [nameInput, emailInput, phoneInput, passwordInput, confirmInput].forEach(clearValidationError);
+
+    if (!name || name.length < 2) {
+        showValidationError(nameInput, 'Please enter your full name.');
+        return;
+    }
+
+    if (!isValidEmail(email)) {
+        showValidationError(emailInput, 'Please use a valid email address.');
+        return;
+    }
+
+    if (mockDatabase.users.some(u => u.email.toLowerCase() === email.toLowerCase())) {
+        showValidationError(emailInput, 'This email is already registered.');
         showNotification('Email already registered', 'error');
         return;
     }
+
+    if (!isValidGhanaPhone(phone)) {
+        showValidationError(phoneInput, 'Use a valid Ghana phone number like 0551234567.');
+        return;
+    }
+
+    if (password.length < 8 || getPasswordStrength(password) < 3) {
+        showValidationError(passwordInput, 'Use 8+ characters with letters, numbers and symbols.');
+        showNotification('Choose a stronger password.', 'error');
+        return;
+    }
+
+    if (password !== confirmPassword) {
+        showValidationError(confirmInput, 'Passwords do not match.');
+        showNotification('Passwords do not match.', 'error');
+        return;
+    }
+
+    if (accountType === 'driver') {
+        const driverLicence = document.getElementById('driverLicence');
+        const vehicleType = document.getElementById('vehicleType');
+        const vehicleMake = document.getElementById('vehicleMake');
+        const vehicleModel = document.getElementById('vehicleModel');
+        const vehiclePlate = document.getElementById('vehiclePlate');
+
+        if (!driverLicence.value.trim() || !vehicleType.value || !vehicleMake.value.trim() || !vehicleModel.value.trim() || !vehiclePlate.value.trim()) {
+            showNotification('Please complete the driver details before registering.', 'error');
+            return;
+        }
+    }
+
+    if (!termsAccepted.checked) {
+        showNotification('Please accept the Terms & Conditions to continue.', 'error');
+        return;
+    }
     
-    // Create new user
     const newUser = {
         id: mockDatabase.users.length + 1,
         email,
@@ -432,7 +723,18 @@ document.getElementById('signupForm').addEventListener('submit', (e) => {
         totalSpent: 0,
         completedRides: 0,
         totalEarnings: 0,
-        twoFactor: false
+        twoFactor: false,
+        memberSince: new Date().toLocaleString('en-US', { month: 'long', year: 'numeric' }),
+        dob: '',
+        gender: 'not-set',
+        driverInfo: accountType === 'driver' ? {
+            licence: document.getElementById('driverLicence').value.trim(),
+            vehicleType: document.getElementById('vehicleType').value,
+            vehicleMake: document.getElementById('vehicleMake').value.trim(),
+            vehicleModel: document.getElementById('vehicleModel').value.trim(),
+            vehiclePlate: document.getElementById('vehiclePlate').value.trim()
+        } : null,
+        avatar: null
     };
     
     mockDatabase.users.push(newUser);
@@ -445,6 +747,60 @@ document.getElementById('signupForm').addEventListener('submit', (e) => {
     showNotification(`Account created successfully! Welcome ${name}!`, 'success');
     showPage('homePage');
     document.getElementById('signupForm').reset();
+    updateAccountTypeFields();
+    updatePasswordStrengthUI('');
+});
+
+document.getElementById('forgotPasswordForm')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const emailInput = document.getElementById('forgotEmail');
+    const email = emailInput.value.trim();
+    clearValidationError(emailInput);
+
+    if (!isValidEmail(email)) {
+        showValidationError(emailInput, 'Please enter a valid email address.');
+        showNotification('Please enter a valid email.', 'error');
+        return;
+    }
+
+    const match = mockDatabase.users.find(user => user.email.toLowerCase() === email.toLowerCase());
+    if (match) {
+        appState.user = match;
+    }
+
+    showNotification('A password reset link has been sent to your email.', 'success');
+    showPage('resetPasswordPage');
+});
+
+document.getElementById('resetPasswordForm')?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const newPasswordInput = document.getElementById('newResetPassword');
+    const confirmPasswordInput = document.getElementById('confirmResetPassword');
+    const newPassword = newPasswordInput.value;
+    const confirmPassword = confirmPasswordInput.value;
+
+    clearValidationError(newPasswordInput);
+    clearValidationError(confirmPasswordInput);
+
+    if (newPassword.length < 8 || getPasswordStrength(newPassword) < 3) {
+        showValidationError(newPasswordInput, 'Use 8+ characters with letters, numbers and symbols.');
+        showNotification('Choose a stronger password.', 'error');
+        return;
+    }
+
+    if (newPassword !== confirmPassword) {
+        showValidationError(confirmPasswordInput, 'Passwords do not match.');
+        showNotification('Passwords do not match.', 'error');
+        return;
+    }
+
+    if (appState.user) {
+        appState.user.password = newPassword;
+    }
+
+    showNotification('Your password has been updated successfully.', 'success');
+    document.getElementById('resetPasswordForm').reset();
+    showPage('loginPage');
 });
 
 function logout() {
@@ -496,54 +852,103 @@ function updateNavbar() {
     }
 }
 
+function isValidEmail(email) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+function isValidGhanaPhone(phone) {
+    return /^(\+233|233|0)(20|24|26|27|28|50|54|55|57|59)\d{7}$/.test(phone.replace(/\s+/g, ''));
+}
+
+function getPasswordStrength(password) {
+    let score = 0;
+    if (password.length >= 8) score += 1;
+    if (/[A-Z]/.test(password)) score += 1;
+    if (/[0-9]/.test(password)) score += 1;
+    if (/[^A-Za-z0-9]/.test(password)) score += 1;
+    return score;
+}
+
+function updatePasswordStrengthUI(password) {
+    const indicator = document.querySelector('#passwordStrength .strength-bar');
+    const strengthText = document.getElementById('strengthText');
+    if (!indicator || !strengthText) return;
+
+    const score = getPasswordStrength(password);
+    const widths = ['0%', '25%', '50%', '75%', '100%'];
+    const colors = ['#ef4444', '#f59e0b', '#f59e0b', '#22c55e', '#16a34a'];
+    const labels = [
+        'Very weak',
+        'Weak',
+        'Fair',
+        'Good',
+        'Strong'
+    ];
+
+    indicator.style.width = widths[score];
+    indicator.style.background = colors[score];
+    strengthText.textContent = score === 0 ? 'Use 8+ characters with letters, numbers and symbols.' : `Password strength: ${labels[score]}`;
+}
+
+function togglePasswordVisibility(button) {
+    const targetId = button.dataset.target;
+    const input = document.getElementById(targetId);
+    if (!input) return;
+
+    const show = input.type === 'password';
+    input.type = show ? 'text' : 'password';
+    const icon = button.querySelector('i');
+    if (icon) {
+        icon.classList.toggle('fa-eye', !show);
+        icon.classList.toggle('fa-eye-slash', show);
+    }
+    button.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+}
+
+function bindPasswordToggles() {
+    document.querySelectorAll('.password-toggle').forEach(button => {
+        button.addEventListener('click', () => togglePasswordVisibility(button));
+    });
+}
+
+function updateAccountTypeFields() {
+    const accountType = document.getElementById('accountType');
+    const driverFields = document.getElementById('driverFields');
+    if (!accountType || !driverFields) return;
+
+    const isDriver = accountType.value === 'driver';
+    driverFields.classList.toggle('hidden', !isDriver);
+}
+
+function showValidationError(input, message) {
+    if (!input) return;
+    input.classList.add('input-error');
+    const existingMessage = input.parentElement?.parentElement?.querySelector('.validation-message');
+    if (existingMessage) {
+        existingMessage.textContent = message;
+        return;
+    }
+
+    const errorEl = document.createElement('small');
+    errorEl.className = 'validation-message';
+    errorEl.textContent = message;
+    input.parentElement?.parentElement?.appendChild(errorEl);
+}
+
+function clearValidationError(input) {
+    if (!input) return;
+    input.classList.remove('input-error');
+    const errorEl = input.parentElement?.parentElement?.querySelector('.validation-message');
+    if (errorEl) errorEl.remove();
+}
+
 // ============================================
 // RIDE BOOKING
 // ============================================
 
 document.getElementById('rideForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    
-    if (!appState.isLoggedIn) {
-        showNotification('Please login first', 'error');
-        return;
-    }
-    
-    const pickupLocation = document.getElementById('pickupLocation').value;
-    const dropoffLocation = document.getElementById('dropoffLocation').value;
-    const rideType = document.getElementById('rideType').value;
-    const passengers = document.getElementById('passengers').value;
-
-    try {
-        const routeQuote = await estimateRideFareFromRoute(rideType, pickupLocation, dropoffLocation);
-        if (!routeQuote) {
-            showNotification('Please enter valid pickup and drop-off locations.', 'error');
-            return;
-        }
-
-        appState.currentRide = {
-            id: Math.random(),
-            pickup: pickupLocation,
-            dropoff: dropoffLocation,
-            type: rideType,
-            passengers: passengers,
-            distanceKm: routeQuote.distanceKm,
-            fare: routeQuote.fare,
-            status: 'searching',
-            createdAt: new Date()
-        };
-
-        const routeReady = await updateRideMapFromAddresses(pickupLocation, dropoffLocation);
-        if (!routeReady) {
-            return;
-        }
-    } catch (error) {
-        console.error('Map geocoding failed:', error);
-        showNotification('Map lookup failed. Please enter a more specific address.', 'error');
-        return;
-    }
-    
-    populateAvailableDrivers();
-    showNotification('Finding drivers for you...', 'info');
+    await launchRideBookingFlow();
 });
 
 function populateAvailableDrivers() {
@@ -606,10 +1011,18 @@ function startRideSimulation() {
     const countdownInterval = setInterval(() => {
         if (arrivalTime <= 0) {
             clearInterval(countdownInterval);
-            etaElement.textContent = 'Driver arrived!';
-            showNotification('Your driver has arrived', 'success');
+            if (etaElement) {
+                etaElement.textContent = 'Driver arrived!';
+            }
+            showNotification('Your driver has arrived. Please complete the ride payment.', 'success');
+            const completeBtn = document.getElementById('completeRideBtn');
+            if (completeBtn) {
+                completeBtn.style.display = 'block';
+            }
         } else {
-            etaElement.textContent = `${arrivalTime} minute${arrivalTime === 1 ? '' : 's'}`;
+            if (etaElement) {
+                etaElement.textContent = `${arrivalTime} minute${arrivalTime === 1 ? '' : 's'}`;
+            }
             arrivalTime--;
         }
     }, 1000);
@@ -621,6 +1034,15 @@ if (callDriverBtn) {
         showNotification('Calling driver...', 'info');
     });
 }
+
+document.getElementById('completeRideBtn')?.addEventListener('click', () => {
+    if (!appState.currentRide) {
+        showNotification('No ride is active right now.', 'error');
+        return;
+    }
+
+    preparePaymentFromCurrentRide();
+});
 
 document.getElementById('cancelRideBtn').addEventListener('click', () => {
     if (confirm('Are you sure you want to cancel this ride?')) {
@@ -1254,6 +1676,7 @@ if (profilePhotoInput) {
 const rideTypeSelect = document.getElementById('rideType');
 const pickupLocationInput = document.getElementById('pickupLocation');
 const dropoffLocationInput = document.getElementById('dropoffLocation');
+const navigateRouteBtn = document.getElementById('navigateRouteBtn');
 
 [rideTypeSelect, pickupLocationInput, dropoffLocationInput].forEach(element => {
     if (element) {
@@ -1261,6 +1684,21 @@ const dropoffLocationInput = document.getElementById('dropoffLocation');
         element.addEventListener('change', updateFareEstimate);
     }
 });
+
+if (navigateRouteBtn) {
+    navigateRouteBtn.addEventListener('click', () => {
+        const origin = navigateRouteBtn.dataset.origin || pickupLocationInput?.value || '';
+        const destination = navigateRouteBtn.dataset.destination || dropoffLocationInput?.value || '';
+
+        if (!origin || !destination) {
+            showNotification('Please add both pickup and drop-off locations first.', 'error');
+            return;
+        }
+
+        const url = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}`;
+        window.open(url, '_blank', 'noopener,noreferrer');
+    });
+}
 
 const paymentHistoryBtn = document.getElementById('paymentHistoryBtn');
 if (paymentHistoryBtn) {

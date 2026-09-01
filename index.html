@@ -474,7 +474,7 @@
                         Login to continue using Louise Transport.
                     </p>
 
-                    <form id="loginForm">
+                    <form id="loginForm" novalidate>
 
                         <div class="form-group">
                             <label for="loginEmail">Email Address</label>
@@ -495,7 +495,7 @@
                         <div class="form-group">
                             <label for="loginPassword">Password</label>
 
-                            <div class="input-wrapper">
+                            <div class="input-wrapper password-wrapper">
                                 <i class="fas fa-lock"></i>
 
                                 <input
@@ -504,11 +504,14 @@
                                     required
                                     placeholder="Enter your password"
                                 >
+                                <button type="button" class="password-toggle" data-target="loginPassword" aria-label="Show password">
+                                    <i class="fas fa-eye"></i>
+                                </button>
                             </div>
                         </div>
 
                         <div class="form-group" id="loginCodeWrap" style="display: none;">
-                            <label for="loginCode">Face Lock / 2FA Code</label>
+                            <label for="loginCode">Two-Factor Authentication (2FA) Code</label>
 
                             <div class="input-wrapper">
                                 <i class="fas fa-shield-halved"></i>
@@ -523,6 +526,13 @@
                             </div>
                         </div>
 
+                        <div class="form-meta-row">
+                            <label class="checkbox-row">
+                                <input type="checkbox" id="rememberMe">
+                                <span>Keep me signed in</span>
+                            </label>
+                            <a href="#" id="forgotPasswordLink" class="text-link">Forgot password?</a>
+                        </div>
 
                         <button type="submit" class="btn btn-primary btn-full">
                             Login
@@ -561,7 +571,7 @@
                         Join Louise Transport today.
                     </p>
 
-                    <form id="signupForm">
+                    <form id="signupForm" novalidate>
 
                         <div class="form-group">
                             <label for="signupName">Full Name</label>
@@ -614,7 +624,7 @@
                         <div class="form-group">
                             <label for="signupPassword">Password</label>
 
-                            <div class="input-wrapper">
+                            <div class="input-wrapper password-wrapper">
                                 <i class="fas fa-lock"></i>
 
                                 <input
@@ -623,6 +633,31 @@
                                     required
                                     placeholder="Create a password"
                                 >
+                                <button type="button" class="password-toggle" data-target="signupPassword" aria-label="Show password">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                            <div class="password-strength" id="passwordStrength" aria-live="polite">
+                                <span class="strength-bar"></span>
+                            </div>
+                            <small class="strength-text" id="strengthText">Use 8+ characters with letters, numbers and symbols.</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="confirmPassword">Confirm Password</label>
+
+                            <div class="input-wrapper password-wrapper">
+                                <i class="fas fa-lock"></i>
+
+                                <input
+                                    type="password"
+                                    id="confirmPassword"
+                                    required
+                                    placeholder="Re-enter your password"
+                                >
+                                <button type="button" class="password-toggle" data-target="confirmPassword" aria-label="Show password">
+                                    <i class="fas fa-eye"></i>
+                                </button>
                             </div>
                         </div>
 
@@ -636,6 +671,42 @@
                             </select>
                         </div>
 
+                        <div class="driver-fields hidden" id="driverFields">
+                            <div class="form-group">
+                                <label for="driverLicence">Driver's Licence Number</label>
+                                <input type="text" id="driverLicence" placeholder="Enter licence number">
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="vehicleType">Vehicle Type</label>
+                                    <select id="vehicleType">
+                                        <option value="">Select vehicle type</option>
+                                        <option value="economy">Economy</option>
+                                        <option value="comfort">Comfort</option>
+                                        <option value="premium">Premium</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="vehicleMake">Vehicle Make</label>
+                                    <input type="text" id="vehicleMake" placeholder="e.g. Toyota">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="vehicleModel">Vehicle Model</label>
+                                    <input type="text" id="vehicleModel" placeholder="e.g. Corolla">
+                                </div>
+                                <div class="form-group">
+                                    <label for="vehiclePlate">Number Plate</label>
+                                    <input type="text" id="vehiclePlate" placeholder="GR 1234 PM">
+                                </div>
+                            </div>
+                        </div>
+
+                        <label class="checkbox-row auth-checkbox">
+                            <input type="checkbox" id="termsAccepted" required>
+                            <span>I agree to the Terms & Conditions and Privacy Policy.</span>
+                        </label>
 
                         <button type="submit" class="btn btn-primary btn-full">
                             Create Account
@@ -652,6 +723,81 @@
 
             </div>
 
+        </section>
+
+
+        <!-- =========================
+             FORGOT PASSWORD PAGE
+        ========================== -->
+        <section id="forgotPasswordPage" class="page">
+            <div class="auth-container">
+                <div class="auth-card">
+                    <div class="auth-icon">
+                        <i class="fas fa-key"></i>
+                    </div>
+                    <h2>Reset your password</h2>
+                    <p class="auth-subtitle">Enter your email to receive a secure password reset link.</p>
+
+                    <form id="forgotPasswordForm" novalidate>
+                        <div class="form-group">
+                            <label for="forgotEmail">Email Address</label>
+                            <div class="input-wrapper">
+                                <i class="fas fa-envelope"></i>
+                                <input type="email" id="forgotEmail" placeholder="Enter your email" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-full">Send Reset Link</button>
+                    </form>
+
+                    <p class="auth-switch">
+                        <a href="#" id="backToLoginFromForgot">Back to login</a>
+                    </p>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- =========================
+             RESET PASSWORD PAGE
+        ========================== -->
+        <section id="resetPasswordPage" class="page">
+            <div class="auth-container">
+                <div class="auth-card">
+                    <div class="auth-icon">
+                        <i class="fas fa-shield-check"></i>
+                    </div>
+                    <h2>Create a new password</h2>
+                    <p class="auth-subtitle">Choose a strong password to secure your Louise Transport account.</p>
+
+                    <form id="resetPasswordForm" novalidate>
+                        <div class="form-group">
+                            <label for="newResetPassword">New Password</label>
+                            <div class="input-wrapper password-wrapper">
+                                <i class="fas fa-lock"></i>
+                                <input type="password" id="newResetPassword" placeholder="Enter a new password" required>
+                                <button type="button" class="password-toggle" data-target="newResetPassword" aria-label="Show password">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="confirmResetPassword">Confirm Password</label>
+                            <div class="input-wrapper password-wrapper">
+                                <i class="fas fa-lock"></i>
+                                <input type="password" id="confirmResetPassword" placeholder="Confirm your new password" required>
+                                <button type="button" class="password-toggle" data-target="confirmResetPassword" aria-label="Show password">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-full">Update Password</button>
+                    </form>
+
+                    <p class="auth-switch">
+                        <a href="#" id="backToLoginFromReset">Back to login</a>
+                    </p>
+                </div>
+            </div>
         </section>
 
 
@@ -794,6 +940,11 @@
                             <div id="fareEstimateValue">GH₵0.00</div>
                             <p id="fareDistanceText">Pricing changes based on distance, pickup, and drop-off locations.</p>
                         </div>
+
+                        <button type="button" class="btn btn-secondary btn-full" id="navigateRouteBtn" style="display: none;">
+                            <i class="fas fa-location-arrow"></i>
+                            Navigate Route
+                        </button>
 
                         <button type="submit" class="btn btn-primary btn-full">
                             <i class="fas fa-magnifying-glass"></i>
@@ -1102,6 +1253,14 @@
 
                     </div>
 
+
+                    <button
+                        class="btn btn-primary btn-full"
+                        id="completeRideBtn"
+                    >
+                        <i class="fas fa-check"></i>
+                        Finish Ride
+                    </button>
 
                     <button
                         class="btn btn-danger btn-full"
@@ -1496,6 +1655,14 @@
                                 </div>
                             </div>
                         </div>
+
+                        <div class="section-card">
+                            <div class="section-header">
+                                <h3>Recent Ride History</h3>
+                                <button class="btn btn-small btn-secondary" type="button" id="viewRideHistoryBtn">View All</button>
+                            </div>
+                            <div id="rideHistoryList" class="history-list"></div>
+                        </div>
                     </div>
 
 
@@ -1570,7 +1737,7 @@
                                         <p id="securityLoginEmail">john@example.com</p>
                                     </div>
                                 </div>
-                                <button class="btn btn-small btn-secondary" id="changePasswordBtn">Update Email</button>
+                                <button class="btn btn-small btn-secondary" id="updateEmailBtn">Update Email</button>
                             </div>
 
                             <div class="security-item">
