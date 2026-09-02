@@ -64,6 +64,21 @@
                     Drive
                 </button>
 
+                <button class="nav-btn" id="safetyBtn" data-scroll-target="safetySection">
+                    <i class="fas fa-shield-alt"></i>
+                    Safety
+                </button>
+
+                <button class="nav-btn" id="helpBtn" data-scroll-target="helpCenterSection">
+                    <i class="fas fa-circle-question"></i>
+                    Help Centre
+                </button>
+
+                <button class="nav-btn" id="contactBtn" data-scroll-target="footerSupport">
+                    <i class="fas fa-headset"></i>
+                    Contact Us
+                </button>
+
                 <button class="nav-btn" id="loginBtn">
                     <i class="fas fa-right-to-bracket"></i>
                     Login
@@ -452,6 +467,33 @@
 
             </section>
 
+            <section class="support-highlight" id="helpCenterSection">
+                <div class="section-heading compact-heading">
+                    <span class="section-label">SUPPORT</span>
+                    <h2>We’re here when you need us</h2>
+                </div>
+
+                <div class="support-grid">
+                    <div class="support-card">
+                        <div class="support-icon"><i class="fas fa-circle-question"></i></div>
+                        <h3>Help Centre</h3>
+                        <p>Get quick answers on fares, booking, cancellations, and ride updates.</p>
+                    </div>
+
+                    <div class="support-card">
+                        <div class="support-icon"><i class="fas fa-shield-alt"></i></div>
+                        <h3>Safety</h3>
+                        <p>Track your trip, verify drivers, and report issues with confidence.</p>
+                    </div>
+
+                    <div class="support-card" id="footerSupport">
+                        <div class="support-icon"><i class="fas fa-headset"></i></div>
+                        <h3>Contact Us</h3>
+                        <p>Speak with our support team for fast assistance and personalized help.</p>
+                    </div>
+                </div>
+            </section>
+
         </section>
 
 
@@ -525,6 +567,11 @@
                                 >
                             </div>
                         </div>
+
+                        <button type="button" class="btn btn-secondary btn-full" id="biometricLoginBtn" style="margin-top: 12px;">
+                            <i class="fas fa-fingerprint"></i>
+                            Biometric Login
+                        </button>
 
                         <div class="form-meta-row">
                             <label class="checkbox-row">
@@ -1772,6 +1819,20 @@
                                 </div>
                                 <label class="toggle-switch">
                                     <input type="checkbox" id="twoFactorToggle">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+
+                            <div class="security-item">
+                                <div class="security-header">
+                                    <i class="fas fa-fingerprint"></i>
+                                    <div>
+                                        <h4>Biometric Login</h4>
+                                        <p id="biometricStatus">Not enabled - Add biometric login</p>
+                                    </div>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="biometricLoginToggle">
                                     <span class="toggle-slider"></span>
                                 </label>
                             </div>

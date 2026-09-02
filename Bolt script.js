@@ -25,7 +25,8 @@ const mapState = {
     liveMap: null,
     pickupMarker: null,
     destinationMarker: null,
-    routeLine: null
+    routeLine: null,
+    nearbyDriverMarkers: []
 };
 
 const GHANA_CENTER = [7.9465, -1.0232];
@@ -136,8 +137,8 @@ async function updateFareEstimate() {
 // Mock Database for Demo
 const mockDatabase = {
     users: [
-        { id: 1, email: 'aloysioudennis09@gmail.com', password: '123456', name: 'Aloysious Dennis', phone: '0535915543', type: 'rider', rating: 4.8, totalRides: 12, totalSpent: 250, twoFactor: false },
-        { id: 2, email: 'driver@test.com', password: '123456', name: 'John Mensah', phone: '0551234567', type: 'driver', rating: 4.9, completedRides: 250, totalEarnings: 5000, twoFactor: false }
+        { id: 1, email: 'aloysioudennis09@gmail.com', password: '123456', name: 'Aloysious Dennis', phone: '0535915543', type: 'rider', rating: 4.8, totalRides: 12, totalSpent: 250, twoFactor: false, biometricLogin: true },
+        { id: 2, email: 'driver@test.com', password: '123456', name: 'John Mensah', phone: '0551234567', type: 'driver', rating: 4.9, completedRides: 250, totalEarnings: 5000, twoFactor: false, biometricLogin: false }
     ],
     drivers: [
         { id: 1, name: 'John Mensah', rating: 4.9, car: 'Toyota Corolla • GR 1234 PM', distance: '2 km away', price: 'GHS 15.50' },
@@ -382,6 +383,39 @@ async function geocodeLocation(query) {
     }
 }
 
+function offsetDriverPoint(baseCoords, index) {
+    const distanceKm = 1.5 + index * 1.3;
+    const bearing = (index + 1) * 0.9;
+    const earthRadiusKm = 6371;
+    const latOffset = (distanceKm / earthRadiusKm) * (180 / Math.PI) * Math.cos(bearing);
+    const lngOffset = (distanceKm / earthRadiusKm) * (180 / Math.PI) * Math.sin(bearing) / Math.cos(baseCoords.lat * (Math.PI / 180));
+
+    return {
+        lat: baseCoords.lat + latOffset,
+        lon: baseCoords.lon + lngOffset
+    };
+}
+
+function drawNearbyDriversOnMap(baseCoords, drivers = mockDatabase.drivers) {
+    if (!mapState.rideMap) {
+        mapState.rideMap = initializeMap('mapContainer', GHANA_CENTER);
+    }
+
+    if (!mapState.rideMap || !baseCoords) {
+        return;
+    }
+
+    mapState.nearbyDriverMarkers.forEach(marker => mapState.rideMap.removeLayer(marker));
+    mapState.nearbyDriverMarkers = [];
+
+    drivers.forEach((driver, index) => {
+        const markerCoords = offsetDriverPoint(baseCoords, index);
+        const marker = L.marker([markerCoords.lat, markerCoords.lon]).addTo(mapState.rideMap);
+        marker.bindPopup(`<strong>${driver.name}</strong><br>${driver.car}<br>${driver.distance}`);
+        mapState.nearbyDriverMarkers.push(marker);
+    });
+}
+
 function drawRouteMap(pickupCoords, destinationCoords) {
     if (!mapState.rideMap) {
         mapState.rideMap = initializeMap('mapContainer', GHANA_CENTER);
@@ -408,17 +442,19 @@ function drawRouteMap(pickupCoords, destinationCoords) {
 
     mapState.pickupMarker = L.marker(pickupLatLng, {
         title: 'Pickup'
-    }).addTo(mapState.rideMap).bindPopup('Pickup location');
+    }).addTo(mapState.rideMap).bindPopup('📍 Pickup location');
 
     mapState.destinationMarker = L.marker(destinationLatLng, {
         title: 'Destination'
-    }).addTo(mapState.rideMap).bindPopup('Destination');
+    }).addTo(mapState.rideMap).bindPopup('🔴 Destination');
 
     mapState.routeLine = L.polyline([pickupLatLng, destinationLatLng], {
         color: '#36b37e',
         weight: 5,
         opacity: 0.8
     }).addTo(mapState.rideMap);
+
+    drawNearbyDriversOnMap(pickupCoords); 
 
     const bounds = L.latLngBounds([pickupLatLng, destinationLatLng]);
     mapState.rideMap.fitBounds(bounds, { padding: [30, 30] });
@@ -474,6 +510,15 @@ document.getElementById('profileBtn').addEventListener('click', () => {
 
 document.getElementById('logoutBtn').addEventListener('click', () => {
     logout();
+});
+
+document.querySelectorAll('[data-scroll-target]').forEach(button => {
+    button.addEventListener('click', () => {
+        const section = document.getElementById(button.dataset.scrollTarget);
+        if (section) {
+            section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    });
 });
 
 document.getElementById('homeLogo')?.addEventListener('click', (event) => {
@@ -630,6 +675,7 @@ document.getElementById('loginForm').addEventListener('submit', (e) => {
     
     updateNavbar();
     updateTwoFactorStatus();
+    updateBiometricStatus();
     showNotification(`Welcome ${user.name}!`, 'success');
     showPage('homePage');
     
@@ -724,6 +770,7 @@ document.getElementById('signupForm').addEventListener('submit', (e) => {
         completedRides: 0,
         totalEarnings: 0,
         twoFactor: false,
+        biometricLogin: false,
         memberSince: new Date().toLocaleString('en-US', { month: 'long', year: 'numeric' }),
         dob: '',
         gender: 'not-set',
@@ -744,6 +791,7 @@ document.getElementById('signupForm').addEventListener('submit', (e) => {
     
     updateNavbar();
     updateTwoFactorStatus();
+    updateBiometricStatus();
     showNotification(`Account created successfully! Welcome ${name}!`, 'success');
     showPage('homePage');
     document.getElementById('signupForm').reset();
@@ -834,6 +882,19 @@ function updateTwoFactorStatus() {
     status.textContent = enabled
         ? 'Enabled - Face lock / 2-step security active'
         : 'Not enabled - Increase your security';
+}
+
+function updateBiometricStatus() {
+    const toggle = document.getElementById('biometricLoginToggle');
+    const status = document.getElementById('biometricStatus');
+
+    if (!toggle || !status) return;
+
+    const enabled = !!(appState.user && appState.user.biometricLogin);
+    toggle.checked = enabled;
+    status.textContent = enabled
+        ? 'Enabled - Fingerprint or face unlock ready'
+        : 'Not enabled - Add biometric login';
 }
 
 function updateNavbar() {
@@ -951,12 +1012,13 @@ document.getElementById('rideForm').addEventListener('submit', async (e) => {
     await launchRideBookingFlow();
 });
 
-function populateAvailableDrivers() {
+async function populateAvailableDrivers() {
     const driversList = document.getElementById('driversList');
     driversList.innerHTML = '';
     const routeDistance = appState.currentRide?.distanceKm || 12;
+    const baseCoords = appState.currentRide ? await geocodeLocation(appState.currentRide.pickup) : { lat: 5.6037, lon: -0.1870 };
 
-    mockDatabase.drivers.forEach(driver => {
+    mockDatabase.drivers.forEach((driver, index) => {
         const driverRate = Math.max(18, appState.currentRide ? getDynamicFare(appState.currentRide.type, routeDistance + driver.id * 0.8) : 20);
         const driverItem = document.createElement('div');
         driverItem.className = 'driver-item';
@@ -971,6 +1033,12 @@ function populateAvailableDrivers() {
             <div class="driver-item-car">${driver.car}</div>
             <div class="driver-item-distance">${driver.distance}</div>
         `;
+
+        if (baseCoords) {
+            const nearbyCoords = offsetDriverPoint(baseCoords, index);
+            driverItem.dataset.latitude = nearbyCoords.lat;
+            driverItem.dataset.longitude = nearbyCoords.lon;
+        }
         
         driverItem.addEventListener('click', () => {
             selectDriver(driver, driverRate);
@@ -978,6 +1046,10 @@ function populateAvailableDrivers() {
         
         driversList.appendChild(driverItem);
     });
+
+    if (baseCoords) {
+        drawNearbyDriversOnMap(baseCoords);
+    }
 }
 
 function selectDriver(driver, selectedFare) {
@@ -1089,23 +1161,25 @@ function simulateRideRequests() {
     const rideRequestsList = document.getElementById('rideRequestsList');
     rideRequestsList.innerHTML = '';
     
-    requests.forEach((request, index) => {
+    requests.forEach((request) => {
         const requestItem = document.createElement('div');
         requestItem.className = 'request-item';
         requestItem.innerHTML = `
-            <div class="request-item-header">
-                <div>
-                    <div class="request-item-user">${request.user}</div>
-                    <div class="request-item-time">2 minutes ago</div>
-                </div>
-                <div class="request-item-price">${request.price}</div>
+            <div class="incoming-header">
+                <span class="incoming-badge">Good evening, 👋</span>
             </div>
+            <div class="incoming-title">Incoming Ride</div>
+            <div class="request-item-user">Passenger: ${request.user}</div>
+            <div class="request-item-fare">Fare: ${request.price}</div>
             <div class="request-item-locations">
-                <strong>${request.from}</strong> → <strong>${request.to}</strong>
+                <span class="location-pill pickup-pill">📍 Pickup</span>
+                <span class="location-divider">|</span>
+                <span class="location-pill destination-pill">🔴 Destination</span>
+                <div class="route-points"><strong>${request.from}</strong> → <strong>${request.to}</strong></div>
             </div>
             <div class="request-item-actions">
                 <button class="btn btn-primary" onclick="acceptRideRequest('${request.user}', '${request.from}', '${request.to}')">Accept</button>
-                <button class="btn btn-secondary" onclick="rejectRideRequest()">Reject</button>
+                <button class="btn btn-secondary" onclick="rejectRideRequest()">Decline</button>
             </div>
         `;
         
@@ -1579,6 +1653,59 @@ if (twoFactorToggle) {
                 : 'Face Lock / 2FA disabled',
             twoFactorToggle.checked ? 'success' : 'info'
         );
+    });
+}
+
+const biometricLoginToggle = document.getElementById('biometricLoginToggle');
+
+if (biometricLoginToggle) {
+    biometricLoginToggle.addEventListener('change', () => {
+        if (!appState.user) {
+            biometricLoginToggle.checked = false;
+            showNotification('Please login first to enable Biometric Login.', 'info');
+            return;
+        }
+
+        appState.user.biometricLogin = biometricLoginToggle.checked;
+        updateBiometricStatus();
+        showNotification(
+            biometricLoginToggle.checked
+                ? 'Biometric Login enabled for this account.'
+                : 'Biometric Login disabled.',
+            biometricLoginToggle.checked ? 'success' : 'info'
+        );
+    });
+}
+
+const biometricLoginBtn = document.getElementById('biometricLoginBtn');
+if (biometricLoginBtn) {
+    biometricLoginBtn.addEventListener('click', () => {
+        const email = document.getElementById('loginEmail')?.value.trim() || '';
+        const user = mockDatabase.users.find(item => item.email.toLowerCase() === email.toLowerCase());
+
+        if (!email) {
+            showNotification('Enter your email first to use biometric login.', 'info');
+            return;
+        }
+
+        if (!user) {
+            showNotification('No account found for this email.', 'error');
+            return;
+        }
+
+        if (!user.biometricLogin) {
+            showNotification('Biometric Login has not been enabled on this account yet.', 'info');
+            return;
+        }
+
+        appState.user = user;
+        appState.isLoggedIn = true;
+        appState.userType = user.type;
+        updateNavbar();
+        updateTwoFactorStatus();
+        updateBiometricStatus();
+        showNotification('Biometric login approved. Welcome!', 'success');
+        showPage('homePage');
     });
 }
 

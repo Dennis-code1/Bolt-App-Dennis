@@ -1781,10 +1781,87 @@ textarea {
     padding: 20px;
 
     display: grid;
-    place-items: center;
+    gap: 16px;
 
     border: 1px dashed var(--border);
     border-radius: 12px;
+}
+
+.request-item {
+    padding: 18px;
+    border: 1px solid rgba(27, 191, 115, 0.12);
+    background: linear-gradient(180deg, #f8fffb, #f1f8f6);
+    border-radius: 16px;
+    box-shadow: 0 10px 24px rgba(16, 27, 26, 0.05);
+}
+
+.incoming-header {
+    margin-bottom: 8px;
+}
+
+.incoming-badge {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    background: rgba(27, 191, 115, 0.12);
+    color: var(--primary-dark);
+}
+
+.incoming-title {
+    font-size: 1.25rem;
+    font-weight: 800;
+    margin-bottom: 10px;
+}
+
+.request-item-user,
+.request-item-fare {
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.request-item-locations {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 12px 0 16px;
+}
+
+.location-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    width: fit-content;
+    padding: 7px 12px;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 12px;
+}
+
+.pickup-pill {
+    background: rgba(27, 191, 115, 0.12);
+    color: var(--primary-dark);
+}
+
+.destination-pill {
+    background: rgba(225, 77, 77, 0.1);
+    color: #c92b2b;
+}
+
+.location-divider {
+    display: none;
+}
+
+.route-points {
+    font-size: 14px;
+    color: var(--muted);
+}
+
+.request-item-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
 }
 
 .no-requests {
