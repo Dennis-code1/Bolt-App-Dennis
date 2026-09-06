@@ -1,14 +1,99 @@
-/* Modal styles */
-/* Example styling */
+/* Safety Section Styles */
 .safety-section {
   background-color: #f9f9f9;
-  padding: 20px;
-}
-.safety-content {
-  max-width: 800px;
-  margin: auto;
+  padding: 40px 20px;
+  font-family: Arial, sans-serif;
+  color: #333;
+  text-align: center;
 }
 
+.safety-content {
+  max-width: 900px;
+  margin: auto;
+  padding: 20px;
+}
+
+.section-label {
+  display: block;
+  font-size: 14px;
+  font-weight: bold;
+  color: #007bff;
+  margin-bottom: 10px;
+  letter-spacing: 1px;
+}
+
+h2 {
+  font-size: 32px;
+  margin-bottom: 20px;
+  color: #222;
+}
+
+p {
+  font-size: 16px;
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+/* Features Grid */
+.safety-features {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
+  margin-top: 30px;
+}
+
+.feature-item {
+  background: #fff;
+  border-radius: 8px;
+  padding: 20px;
+  width: 250px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  margin: 10px;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
+  text-align: center;
+}
+
+.feature-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.feature-item i {
+  font-size: 30px;
+  color: #007bff;
+  margin-bottom: 10px;
+}
+
+h4 {
+  margin-top: 10px;
+  margin-bottom: 10px;
+  font-size: 20px;
+  color: #111;
+}
+
+/* Button Styles */
+.btn {
+  padding: 12px 24px;
+  font-size: 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  margin-top: 30px;
+}
+
+.btn-primary {
+  background-color: #007bff;
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background-color: #0056b3;
+}
+
+/* Modal Styles (your existing code can stay, but let's ensure it's consistent) */
 .modal {
   position: fixed;
   top: 0;
@@ -22,9 +107,11 @@
   z-index: 9999;
   display: none;
 }
+
 .modal.show {
   display: flex;
 }
+
 .modal .modal-content {
   background: #fff;
   padding: 20px;
@@ -33,6 +120,7 @@
   border-radius: 8px;
   position: relative;
 }
+
 .close-btn {
   position: absolute;
   top: 10px;
@@ -41,4 +129,107 @@
   border: none;
   font-size: 24px;
   cursor: pointer;
+}
+/* Additional Safety Assurance Section Styles */
+.additional-safety {
+  background-color: #eef2f3;
+  padding: 50px 20px;
+  font-family: Arial, sans-serif;
+  color: #333;
+  text-align: center;
+}
+
+.additional-safety-container {
+  max-width: 1000px;
+  margin: auto;
+}
+
+.additional-safety h2 {
+  font-size: 28px;
+  margin-bottom: 30px;
+  color: #222;
+}
+
+.safety-info-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px;
+}
+
+.safety-item {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  width: 300px;
+  padding: 20px;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
+  text-align: center;
+}
+
+.safety-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.safety-image {
+  width: 80px;
+  height: 80px;
+  margin-bottom: 15px;
+  object-fit: contain;
+}
+
+h3 {
+  font-size: 20px;
+  margin-bottom: 10px;
+  color: #111;
+}
+
+p {
+  font-size: 14px;
+  line-height: 1.5;
+}
+/* Footer styles */
+.safety-footer {
+  background-color: #222;
+  color: #fff;
+  padding: 40px 20px;
+  font-family: Arial, sans-serif;
+}
+
+.footer-container {
+  display: flex;
+  flex-wrap: wrap;
+  max-width: 1200px;
+  margin: auto;
+  justify-content: space-between;
+}
+
+.footer-column {
+  flex: 1 1 150px;
+  margin: 10px;
+}
+
+.footer-column h4 {
+  font-size: 16px;
+  margin-bottom: 15px;
+  font-weight: bold;
+}
+
+.footer-column ul {
+  list-style: none;
+  padding: 0;
+  line-height: 1.8;
+}
+
+.footer-column li {
+  font-size: 14px;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.footer-column li:hover {
+  color: #f0c14b; /* Highlight color on hover */
 }
