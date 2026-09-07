@@ -2479,3 +2479,15 @@ document.querySelectorAll('[data-close="true"]').forEach((btn) => {
     document.getElementById("safetyModal").classList.remove("show");
   });
 });
+document.getElementById("helpBtn").addEventListener("click", () => {
+  document.getElementById("helpCenterModal").classList.remove("hidden");
+});
+document.getElementById("closeHelp").addEventListener("click", () => {
+  document.getElementById("helpCenterModal").classList.add("hidden");
+});
+// Optional: click outside modal to close
+document.getElementById("helpCenterModal").addEventListener("click", (e) => {
+  if (e.target === document.getElementById("helpCenterModal")) {
+    document.getElementById("helpCenterModal").classList.add("hidden");
+  }
+});
